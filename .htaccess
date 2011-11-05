@@ -1,0 +1,19 @@
+RewriteEngine on
+
+
+#No access to sensible directory
+RewriteRule ^Code\/.*$ index.php [L]
+RewriteRule ^Config\/.*$ index.php [L]
+RewriteRule ^Controllers\/.*$ index.php [L]
+RewriteRule ^Core\/.*$ index.php [L]
+RewriteRule ^Model\/.*$ index.php [L]
+RewriteRule ^Views\/.*$ index.php [L]
+RewriteRule ^Files\/.*$ index.php [L]
+
+RewriteCond  %{REQUEST_FILENAME} !-f
+RewriteCond  %{REQUEST_FILENAME} !-d
+RewriteRule ^/?(.*)$ index.php [L]
+
+
+
+

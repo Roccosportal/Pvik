@@ -110,7 +110,6 @@ Class Core {
         If($QueryStringPos!== false){
             $Url = substr($Url,0,  $QueryStringPos);
         }
-        $Url = strtolower($Url);
         if(strlen($Url)!=0){
             // add a / at the start if not already has
             if ($Url[0] != '/')
@@ -143,7 +142,7 @@ Class Core {
     protected function UrlIsMatching($OrignalUrl, $Route){
         $RouteUrl = $Route['Url'];
         $IsMatching = false;
-        if($OrignalUrl == $RouteUrl){
+        if(strtolower($OrignalUrl) == $RouteUrl){
             return true;
         }
         elseif (strpos($RouteUrl, '{') !== false && strpos($RouteUrl, '}') !== false) // contains a variable
@@ -160,7 +159,7 @@ Class Core {
                         }
              
                    }
-                   else if($RouteUrlParts[$Index] != $OrignalUrlParts[$Index]) {
+                   else if(strtolower($RouteUrlParts[$Index]) != $OrignalUrlParts[$Index]) {
                        // not matching
                        return false;
                    }

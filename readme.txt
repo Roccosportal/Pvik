@@ -5,4 +5,4 @@ License: license.txt
 Date: 01-07-2011
 
 Pvik is a free small php framework which uses the MVC concept.
-You find more information in the HowTo.htm.
+You find more information in the /HowTo/HowTo.html.

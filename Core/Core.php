@@ -283,9 +283,9 @@ Class Log {
         $this->LogTrace = array();
         $date = new DateTime();
         if (Core::$Config['Log']['UseOneFile'] == false) {
-            $GeneratedFilePath = Core::RealPath('~/Logs') . '/Log_' . $date->getTimestamp() . '.txt';
+            $GeneratedFilePath = Core::RealPath('~/Logs') . '/Log' . $date->getTimestamp() . '.txt';
         } else {
-            $GeneratedFilePath = Core::RealPath('~/Logs/Log_file.txt');
+            $GeneratedFilePath = Core::RealPath('~/Logs/LogFile.txt');
         }
 
         $this->LogFileHandle = fopen($GeneratedFilePath, 'w');

@@ -54,7 +54,7 @@ class ModelTable {
     }
 
     public function GetByPrimaryKey($PrimaryKey){
-        if($PrimaryKey==0){
+        if($PrimaryKey===0){
             return null;
         }
         else{
@@ -67,7 +67,7 @@ class ModelTable {
                 // get via sql
                 $Parameters = array();
                 array_push($Parameters, $PrimaryKey);
-                $Conditions = 'WHERE ' . $this->GetTableName()  . '.' . $this->GetPrimaryKeyName() . ' = %s';
+                $Conditions = SQLBuilder::CreateWhereStatementByPrimaryKey($this);
                 return $this->SelectSingle($Conditions, '', $Parameters);
             }
         }
@@ -75,6 +75,10 @@ class ModelTable {
 
     public function GetTableName(){
         return $this->TableName;
+    }
+    
+    public function GetModelClassName(){
+        return $this->ModelClassName;
     }
 
     public function GetFromCacheByPrimaryKey($PrimaryKey){
@@ -101,29 +105,9 @@ class ModelTable {
         return $this->DataDefinition;
     }
 
-    public function CreateSelect($Conditions,$OrderBy){
-        $SQL = '';
-        $SQL .= $this->CreateSelectPart();
-        $SQL .= ' ';
-        $SQL .= $Conditions;
-        $SQL .= ' ';
-        $SQL .= $this->CreateGroupByPart();
-        $SQL .= ' ';
-        $SQL .= $OrderBy;
-        return $SQL;
-    }
-
     public function SelectList($Conditions,  $OrderBy, $Parameters = array()){
-        $QueryString = $this->CreateSelect($Conditions, $OrderBy);
-        $Result = MySQLManager::SelectWithParameters($QueryString, $Parameters);
-        $List = array();
-        while ($Data = mysql_fetch_assoc($Result)) {
-            $Classname = $this->ModelClassName . 'Model';
-            $Model = new $Classname();
-            $Model->Fill($Data);
-            array_push($List, $Model);
-        }
-        return $List;
+        $QueryString = SQLBuilder::CreateSelectStatement($this,$Conditions, $OrderBy);
+        return SQLManager::FillList($this, $QueryString, $Parameters);
     }
 
     public function SelectSingle($Conditions, $OrderBy, $Parameters = array()){
@@ -140,8 +124,8 @@ class ModelTable {
         $PrimaryKey = $Object->GetPrimaryKey();
         If(empty($PrimaryKey)){
             // insert into database
-            $Insert = $this->CreateInsertPart($Object);
-            $PrimaryKey = MySQLManager::InsertWithParameters($Insert['SQL'],$Insert['Parameters']);
+            $Insert = SQLBuilder::CreateInsertStatement($this, $Object);
+            $PrimaryKey = SQLManager::InsertWithParameters($Insert['SQL'],$Insert['Parameters']);
             // update primarykey in object
             $Object->UpdateObjectData($this->GetPrimaryKeyName(),$PrimaryKey);
 
@@ -181,8 +165,8 @@ class ModelTable {
         $PrimaryKey = $Object->GetPrimaryKey();
         if(!empty($PrimaryKey)){
                 // create update statement
-                $Update = $this->CreateUpdatePart($Object);
-                return MySQLManager::UpdateWithParameters($Update['SQL'], $Update['Parameters']);
+                $Update = SQLBuilder::CreateUpdateStatement($this, $Object);
+                return SQLManager::UpdateWithParameters($Update['SQL'], $Update['Parameters']);
 
 
         }
@@ -191,250 +175,13 @@ class ModelTable {
         }
     }
 
-    public function CreateUpdatePart(Model $Object){
-        $SQL = 'UPDATE '. $this->GetTableName() . ' SET ';
-        $Count = 1;
-        $Parameters = array();
-        foreach($this->GetDataDefinition() as $Key => $Definition){
-            switch($Definition['Type']){
-                case 'Normal':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $Data =  $Object->GetObjectData($Key);
-                    if(is_bool($Data)){
-                        if($Data==true)
-                            $SQL .= $Key . '= TRUE';
-                        else
-                             $SQL .= $Key . '= FALSE';
-                    }
-                    elseif($Data!==null){
-                        //$SQL .= $Key .' = "' . $Data. '"';
-                        $SQL .= $Key .' = "%s"';
-                        array_push($Parameters, $Data);
-                    }
-                    else {
-                        $SQL .= $Key .' = NULL';
-                    }
-                    $Count++;
-                    break;
-                case 'ForeignKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $Data =  $Object->GetObjectData($Key);
-                    if(is_bool($Data)){
-                        if($Data==true)
-                            $SQL .= $Key . '= TRUE';
-                        else
-                             $SQL .= $Key . '= FALSE';
-                    }
-                    elseif($Data!==null){
-                        $SQL .= $Key .' = "' . $Data. '"';
-                    }
-                    else {
-                        $SQL .= $Key .' = NULL';
-                    }
-                    $Count++;
-                    break;
-            }
-        }
-        $SQL .= ' WHERE '. $this->GetPrimaryKeyName() . ' = %s';
-        array_push($Parameters, $Object->GetObjectData($this->GetPrimaryKeyName()));
-        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
-    }
-
-    public function CreateInsertPart(Model $Object){
-        $SQL = 'INSERT INTO ' . $this->GetTableName();
-        $DataDefinition = $this->GetDataDefinition();
-        // create column list
-        $SQL .= ' (';
-        $Count = 1;
-        foreach($DataDefinition as $Key => $Definition){
-            switch($Definition['Type']){
-                case 'Normal':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= $Key;
-                    $Count++;
-                    break;
-               case 'ForeignKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= $Key;
-                    $Count++;
-                    break;
-            }
-        }
-        $SQL .= ')';
-        // create column values
-        $SQL .= ' VALUES (';
-        $Count = 1;
-        $Parameters = array();
-        foreach($DataDefinition as $Key => $Definition){
-            switch($Definition['Type']){
-                case 'Normal':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    if(is_bool($Object->$Key)){
-                        if($Object->$Key==true)
-                            $SQL .= 'TRUE';
-                        else
-                             $SQL .= 'FALSE';
-                    }
-                    elseif($Object->$Key!==null){
-                        //$SQL .= '"'. $Object->$Key . '"';
-                        $SQL .= '"%s"';
-                        array_push($Parameters, $Object->$Key);
-                    }
-                    else {
-                        $SQL .= 'NULL';
-                    }
-                    $Count++;
-                    break;
-               case 'ForeignKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    if(is_bool($Object->$Key)){
-                        if($Object->$Key==true)
-                            $SQL .= 'TRUE';
-                        else
-                             $SQL .= 'FALSE';
-                    }
-                    elseif($Object->$Key!==null){
-                        $SQL .= '"%s"';
-                        array_push($Parameters, $Object->$Key);
-                    }
-                    else {
-                        $SQL .= 'NULL';
-                    }
-                    $Count++;
-                    break;
-            }
-        }
-        $SQL .= ')';
-        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
-    }
-
-    public function SQLAttribute($Attribute, $Alias = '', $Table = ''){
-        if($Table==''){
-            $Table = $this->GetTableName();
-        }
-        $SQL = $Table . '.'. $Attribute;
-        if($Alias!=''){
-            $SQL .= ' as '. $Alias;
-        }
-        return $SQL;
-    }
-
-    public function CreateSelectPart(){
-        $SQL = 'SELECT ';
-        $Count = 1;
-        $Join = false;
-        $AliasArray = array();
-        foreach ($this->GetDataDefinition() as $Key => $Definition) {
-            switch ($Definition['Type']) {
-                case 'Normal':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= $this->SQLAttribute($Key);
-                    $Count++;
-                    break;
-                case 'PrimaryKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= $this->SQLAttribute($Key);
-                    $Count++;
-                    break;
-                case 'ForeignKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= $this->SQLAttribute($Key);
-                    $Count++;
-                    break;
-                case 'ManyForeignObjects':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    // simeple creation for a unique alias
-                    $Alias = '';
-                    for ($i = 0; $i < count($AliasArray) + 1; $i++) {
-                        $Alias .= 't';
-                    }
-                    $AliasArray[$Key] = $Alias;
-                    // get definition for the foreign table
-                    $ModelTable =  ModelTable::Get($Definition['ModelTable']);
-                    // generate group_conact
-                    $SQL.= 'GROUP_CONCAT(' . $this->SQLAttribute($ModelTable->GetPrimaryKeyName(), '',$Alias  ) .') as '. $Key;
-                    $Join = true;
-                    $Count++;
-                    break;
-            }
-            
-        }
-        $SQL .=  ' FROM ' . $this->GetTableName() ;
-
-
-        if($Join){
-            // add joins
-            foreach ($this->GetDataDefinition() as $Key => $Definition) {
-                 if ($Definition['Type']=='ManyForeignObjects') {
-                     $ModelTable =  ModelTable::Get($Definition['ModelTable']);
-                         $SQL .= ' LEFT JOIN ' . $ModelTable->GetTableName() . ' as ' . $AliasArray[$Key]
-                                . ' ON ' . $this->SQLAttribute($Definition['ForeignKey'],'',$AliasArray[$Key])
-                                . ' = ' . $this->SQLAttribute($this->GetPrimaryKeyName(),'',$this->GetTableName());
-    
-
-                 }
-            }
-        }
-        return $SQL;
-    }
-
-    public function CreateGroupByPart(){
-        $Count = 1;
-        $SQL = '';
-        foreach ($this->GetDataDefinition() as $Key => $Definition) {
-             if ($Definition['Type']=='ManyForeignObjects') {
-                if($Count>1){
-                     // add , at the end
-                    $SQL .= ', ';
-                }
-                $SQL .=  $this->SQLAttribute($this->GetPrimaryKeyName());
-                $Count++;
-             }
-        }
-        // if we have a group by part
-        if($Count>1){
-            $SQL = 'GROUP BY '. $SQL;
-        }
-        return $SQL;
-    }
-
     public function Delete(Model $Object){
         $PrimaryKey = $Object->GetPrimaryKey();
         if($PrimaryKey!=null){
-            $QueryString = $this->CreateDeletePart();
+            $QueryString = SQLBuilder::CreateDeleteStatement($this);
             $Parameters = array();
             array_Push($Parameters, $PrimaryKey);
-            MySQLManager::DeleteWithParameters($QueryString, $Parameters);
+            SQLManager::DeleteWithParameters($QueryString, $Parameters);
 
             // update foreign objects
             foreach($this->GetDataDefinition() as $DefinitionKey => $Definition){
@@ -461,9 +208,6 @@ class ModelTable {
         }
     }
 
-    public function CreateDeletePart(){
-        return 'DELETE FROM '. $this->GetTableName() . ' WHERE '. $this->GetPrimaryKeyName() . ' = %s';
-    }
 }
 
 ?>

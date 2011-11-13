@@ -128,6 +128,10 @@ Class Core {
 
         // set to array because if a route matches the variable automatically get filled
         self::$UrlParameters = new KeyValueArray();
+        if(!isset(self::$Config['Routes'])){
+            throw new Exception('No Routes found in config. Probably misconfigured config.');
+        }
+        else {
         $Routes = self::$Config['Routes'];
         foreach ($Routes as $Route) {
             if ($this->UrlIsMatching($Url,$Route) ) {
@@ -135,6 +139,7 @@ Class Core {
                 $RouteMatch = $Route;
                 break;
             }
+        }
         }
         return $RouteMatch;
     }
@@ -268,6 +273,24 @@ Class Core {
             $Data = $_GET[$Key];
         }
         return $Data;
+    }
+    
+    public static function CreateGuid(){
+        if (function_exists('com_create_guid')){
+            return com_create_guid();
+        }else{
+            mt_srand((double)microtime()*10000);//optional for php 4.2.0 and up.
+            $CharId = strtoupper(md5(uniqid(rand(), true)));
+            $Hyphen = chr(45);// "-"
+            $Uuid = chr(123)// "{"
+                    .substr($CharId, 0, 8).$Hyphen
+                    .substr($CharId, 8, 4).$Hyphen
+                    .substr($CharId,12, 4).$Hyphen
+                    .substr($CharId,16, 4).$Hyphen
+                    .substr($CharId,20,12)
+                    .chr(125);// "}"
+            return $Uuid;
+        }
     }
 
 

@@ -78,6 +78,7 @@
 </p>
 <h2 id="requirements">Requirements</h2>
 <p>You need a webserver (Apache2 recommended) with installed PHP5. You need permissions to overwrite the access controlling via a .htaccess file. RewriteEngine must be activated.</p>
+<p>Pvik supports MySQL and MS SQL Server, but a database is not necessary to work with Pvik.</p>
 <h2 id="install">Install</h2>
 <p>To install Pvik you just need to copy the files to the webserver folder. If you use logging you need to set write permissions for the folder '/Logs/'.</p>
 <h2 id="create-hello-world">Create hello world</h2>
@@ -89,7 +90,7 @@
 class HelloWorldController extends Controller {
 	// action					
 	public function Index(){
-		// place here the programm logic
+		// place here the program logic
 		$this-&gt;ExecuteView();
 	}				
 }
@@ -181,30 +182,43 @@ $this-&gt;ViewData-&gt;Set(&#39;instance&#39; , $Instance);</pre>
     Pvik model use a simple cache controlling to prevent multiple database accesses if they aren't necessary.
 </p>
 <h3 id="model-1">Prepare configuration</h3>
-<p> Add following lines to the config and change the data for the connection if necessary:</p>
+<p> Add following lines to the config for a mysql connection and change the data for the connection if necessary:</p>
 <pre class="brush: php">self::$Config['MySQL']['Server'] = 'localhost';
 self::$Config['MySQL']['Username'] = 'root';
 self::$Config['MySQL']['Password'] = 'root';
 self::$Config['MySQL']['Database'] = 'mydatabase';</pre>
+<p>
+    Pvik also supports MS SQL Server, you can connect via the mssql driver or via sqlsrv driver. Check your php.ini to know which one is activated.
+</p>
+<pre class="brush: php">self::$Config['MSSQL']['Server'] = 'localhost';
+self::$Config['MSSQL']['Username'] = 'root';
+self::$Config['MSSQL']['Password'] = 'root';
+self::$Config['MSSQL']['Database'] = 'mydatabase';
+// or
+self::$Config['SQLSRV']['Server'] = 'localhost';
+self::$Config['SQLSRV']['Username'] = 'root';
+self::$Config['SQLSRV']['Password'] = 'root';
+self::$Config['SQLSRV']['Database'] = 'mydatabase';
+</pre>
 <h3 id="model-2">Create model classes</h3>
 <p>There are two types of classes you need to create. A 'ModelTable' class and a 'Model' class. A object of 'ModelTable'
 contains all needed information about a table. A object of 'Model' contains all needed data from a single line in the table. For example we have following tables in the database:
 </p>
-<pre><code>Author
+<pre><code>Authors
 - AuthorID (int, primarykey, auto increment)
 - Firstname (text)
 - Lastname (text)
 
-Book
+Books
 - BookID (int, primarykey, auto increment)
 - Title (text)
 - AuthorID (int)</code></pre>
 <p>A model file (/Model/AuthorModel.php) for the author could look like this: </p>
 <pre class="brush: php">&lt;?php
-class AuthorModelTable extends ModelTable {
+class AuthorsModelTable extends ModelTable {
     public function __construct(){
         // define the table name
-        $this-&gt;TableName = 'Author';
+        $this-&gt;TableName = 'Authors';
         // define the class name for the model
         // 'Model' is the standard suffix: 'AuthorModel'
         $this-&gt;ModelClassName = 'Author';
@@ -218,24 +232,24 @@ class AuthorModelTable extends ModelTable {
         $this-&gt;DataDefinition['Lastname'] =  array ('Type' =&gt; 'Normal');
         // define a new attribute from type many foreign object
         // this field contains an array from 'BookModel's that are associated with a author
-        $this-&gt;DataDefinition['Books'] = array ('Type' =&gt; 'ManyForeignObjects', 'ModelTable' =&gt; 'Book','ForeignKey' =&gt; 'AuthorID');
+        $this-&gt;DataDefinition['Books'] = array ('Type' =&gt; 'ManyForeignObjects', 'ModelTable' =&gt; 'Books','ForeignKey' =&gt; 'AuthorID');
     }
 }
 
 class AuthorModel extends Model {
     public function __construct(){
         // define the class name for the model table
-        // 'ModelTable' is the standard suffix: 'AuthorModelTable'
-        $this-&gt;ModelTableName = 'Author';
+        // 'ModelTable' is the standard suffix: 'AuthorsModelTable'
+        $this-&gt;ModelTableName = 'Authors';
     }
 }
 ?&gt;</pre>
 <p>And the model file for the book (/Model/BookModel.php):</p>
 <pre class="brush: php">&lt;?php
-class BookModelTable extends ModelTable {
+class BooksModelTable extends ModelTable {
     public function __construct(){
         // define the table name
-        $this-&gt;TableName = 'Book';
+        $this-&gt;TableName = 'Books';
         // define the class name for the model
         // 'Model' is the standard suffix: 'BookModel'
         $this-&gt;ModelClassName = 'Book';
@@ -247,7 +261,7 @@ class BookModelTable extends ModelTable {
         $this-&gt;DataDefinition['Title'] =  array ('Type' =&gt; 'Normal');
         // define a new attribute from type foreign key
         // this field contains the real id
-        $this-&gt;DataDefinition['AuthorID'] = array ('Type' =&gt; 'ForeignKey', 'ModelTable' =&gt; 'Author');
+        $this-&gt;DataDefinition['AuthorID'] = array ('Type' =&gt; 'ForeignKey', 'ModelTable' =&gt; 'Authors');
         // define a new attribute from type foreign object
         // this field contains a object from type 'AuthorModel'
         $this-&gt;DataDefinition['Author'] = array ('Type' =&gt; 'ForeignObject', 'ForeignKey' =&gt; 'AuthorID');
@@ -257,11 +271,14 @@ class BookModelTable extends ModelTable {
 class BookModel extends Model {
     public function __construct(){
         // define the class name for the model table
-        // 'ModelTable' is the standard suffix: 'BookModelTable'
-        $this-&gt;ModelTableName = 'Book';
+        // 'ModelTable' is the standard suffix: 'BooksModelTable'
+        $this-&gt;ModelTableName = 'Books';
     }
 }
 ?&gt;</pre>
+<p class="info" >
+    Info: If the primary key is a guid you can set it in the data definition ('IsGuid' =&gt; true).
+</p>
 <h3 id="model-3">Use model in controller</h3>
 <p>A action in the controller to select data could look like this:</p>
 <pre class="brush: php">public function Index(){
@@ -300,7 +317,7 @@ class BookModel extends Model {
 $Authors = $this-&gt;ViewData-&gt;Get('Authors');
 ?&gt;
 &lt;table&gt;
-    &lt;tr&gt;&lt;th&gt;Firstname&lt;th&gt;&lt;th&gt;Lastname&lt;th&gt;&lt;th&gt;First Book&lt;th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;th&gt;Firstname&lt;/th&gt;&lt;th&gt;Lastname&lt;/th&gt;&lt;th&gt;First Book&lt;/th&gt;&lt;/tr&gt;
     &lt;?php
     foreach($Authors as $Author){
     ?&gt;
@@ -325,7 +342,7 @@ $Authors = $this-&gt;ViewData-&gt;Get('Authors');
 $Books = $this-&gt;ViewData-&gt;Get('Books');
 ?&gt;
 &lt;table&gt;
-    &lt;tr&gt;&lt;th&gt;Title&lt;th&gt;&lt;th&gt;Author&lt;th&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;th&gt;Title&lt;/th&gt;&lt;th&gt;Author&lt;/th&gt;&lt;/tr&gt;
     &lt;?php
     foreach($Books as $Book){
     ?&gt;
@@ -333,7 +350,7 @@ $Books = $this-&gt;ViewData-&gt;Get('Books');
         &lt;td&gt;&lt;?php echo $Book-&gt;Title; ?&gt;&lt;/td&gt;
         &lt;td&gt;&lt;?php echo $Book-&gt;Author-&gt;Lastname; ?&gt;&lt;/td&gt;
     &lt;/tr&gt;
-    &lt;?php&gt;
+    &lt;?php
     }
     ?&gt;
 &lt;/table&gt;</pre>

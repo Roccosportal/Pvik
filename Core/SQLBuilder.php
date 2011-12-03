@@ -14,6 +14,31 @@ class SQLBuilder {
         }
     }
     
+     public static function CreateWhereStatementByPrimaryKeys(ModelTable $ModelTable, $Keys){
+        if(SQLManager::GetDatabaseSystem()=='MySQL'){
+            return MySQLBuilder::CreateWhereStatementByPrimaryKeys($ModelTable, $Keys);
+        }
+        elseif(SQLManager::GetDatabaseSystem()=='MSSQL' || SQLManager::GetDatabaseSystem()=='SQLSRV'){ // SQLSRV and MSSQL using the same SQL syntax 
+            return MSSQLBuilder::CreateWhereStatementByPrimaryKeys($ModelTable, $Keys);
+        }
+        else {
+            throw new Exception('Couldn\'t find the correct SQLBuilder. Probably misconfigured config file.');
+        }
+    }
+    
+    
+   public static function CreateInStatementForKeys(ModelTable $ModelTable, $Field, $Keys){
+        if(SQLManager::GetDatabaseSystem()=='MySQL'){
+            return MySQLBuilder::CreateInStatementForKeys($ModelTable, $Field, $Keys);
+        }
+        elseif(SQLManager::GetDatabaseSystem()=='MSSQL' || SQLManager::GetDatabaseSystem()=='SQLSRV'){ // SQLSRV and MSSQL using the same SQL syntax 
+            return MSSQLBuilder::CreateInStatementForKeys($ModelTable, $Field, $Keys);
+        }
+        else {
+            throw new Exception('Couldn\'t find the correct SQLBuilder. Probably misconfigured config file.');
+        }
+    }
+    
     public static function CreateSelectStatement(ModelTable $ModelTable, $Conditions,$OrderBy){
          if(SQLManager::GetDatabaseSystem()=='MySQL'){
             return MySQLBuilder::CreateSelectStatement($ModelTable, $Conditions, $OrderBy);
@@ -56,6 +81,18 @@ class SQLBuilder {
         }
         elseif(SQLManager::GetDatabaseSystem()=='MSSQL' || SQLManager::GetDatabaseSystem()=='SQLSRV'){ // SQLSRV and MSSQL using the same SQL syntax 
             return MSSQLBuilder::CreateDeleteStatement($ModelTable);
+        }
+        else {
+            throw new Exception('Couldn\'t find the correct SQLBuilder. Probably misconfigured config file.');
+        }
+    }
+    
+     public static function CreatePreloadStatement(ModelTable $ModelTable,ModelTable $ListModelTable, $List, $Field){
+        if(SQLManager::GetDatabaseSystem()=='MySQL'){
+            return MySQLBuilder::CreatePreloadStatement($ModelTable,$ListModelTable, $List, $Field);
+        }
+        elseif(SQLManager::GetDatabaseSystem()=='MSSQL' || SQLManager::GetDatabaseSystem()=='SQLSRV'){ // SQLSRV and MSSQL using the same SQL syntax 
+            return MSSQLBuilder::CreatePreloadStatement($ModelTable,$ListModelTable, $List, $Field);
         }
         else {
             throw new Exception('Couldn\'t find the correct SQLBuilder. Probably misconfigured config file.');

@@ -60,17 +60,33 @@ class Model {
                 case 'ManyForeignObjects':
                     $Keys = $this->GetObjectData($Key);
                     if($Keys==null){
-                        return null;
+                        return new ModelArray();
                     }
                     if(isset($Keys)){
-                        $List = array();
+                        $List = new ModelArray();
                         $ModelTableName = $DataDefinition[$Key]['ModelTable'];
                         // convert to array
                         $ForeignKeys = explode(',', $Keys);
+                        $LoadKeys = array();
                         foreach($ForeignKeys as $ForeignKey){
                             if(!empty($ForeignKey)){
-                                // get object by id
-                                array_push($List, ModelTable::Get($ModelTableName)->GetByPrimaryKey($ForeignKey));
+                                // search in cache
+                                $Item = ModelTable::Get($ModelTableName)->GetFromCacheByPrimaryKey($ForeignKey);
+                                
+                                // mark for loading later
+                                if($Item==null){
+                                    array_push($LoadKeys, $ForeignKey);
+                                }
+                                else {
+                                    $List->append($Item);
+                                }
+                            }
+                        }
+                        if(!empty($LoadKeys)){
+                            // now load every data we didn't find in the cache
+                            $LoadedItems = ModelTable::Get($ModelTableName)->ByPrimaryKeys($LoadKeys);
+                            foreach($LoadedItems as $LoadedItem){
+                                 $List->append($LoadedItem);
                             }
                         }
                         return $List;
@@ -185,6 +201,20 @@ class Model {
             return $this->Data[$Key];
         }
         else{
+            return null;
+        }
+    }
+    
+    public function GetKeys($Key){
+        $ModelTable  = $this->GetModelTable();
+        $DataDefinition = $ModelTable->GetDataDefinition();
+        if(!isset($DataDefinition[$Key])||$DataDefinition[$Key]['Type']!='ManyForeignObjects'){
+            throw new Exception('The field must have the type "ManyForeignObjects".');
+        }
+        $KeysString = $this->GetObjectData($Key);
+        if($KeysString!=null){
+            return explode(',', $KeysString);
+        }else {
             return null;
         }
     }

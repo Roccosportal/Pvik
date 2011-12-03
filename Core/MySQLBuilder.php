@@ -285,6 +285,76 @@ class MySQLBuilder {
     public static function CreateDeleteStatement(ModelTable $ModelTable){
         return 'DELETE FROM '. $ModelTable->GetTableName() . ' WHERE '. $ModelTable->GetPrimaryKeyName() . ' = "%s"';
     }
+    
+    public static function CreateWhereStatementByPrimaryKeys(ModelTable $ModelTable, $Keys){
+        $Result = self::CreateInStatementForKeys($ModelTable, $ModelTable->GetPrimaryKeyName(), $Keys);
+        $Result['SQL'] = "WHERE " . $Result['SQL'];
+        return $Result;
+    }
+    
+    public static function CreateInStatementForKeys(ModelTable $ModelTable, $Field, $Keys){
+        $SQL =  $ModelTable->GetTableName()  . "." . $Field . " IN ( ";
+        $Count = 0;
+        $Parameters = array();
+        foreach($Keys as $Key){
+            if($Count!=0){
+                $SQL .=  ",";
+            }
+            $SQL .=  "'%s'";
+            array_push($Parameters, $Key);
+            $Count++;
+        }
+        $SQL .= ')';
+        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
+    }
+    
+     public static function CreatePreloadStatement(ModelTable $ModelTable,ModelTable $ListModelTable, ModelArray $List, $Field){
+        $DataDefinitions = $ListModelTable->GetDataDefinition(); 
+        if(!isset($DataDefinitions[$Field])) {
+            throw new Exception('The field must be a field from the data definition.');
+        }
+        $DataDefinition = $DataDefinitions[$Field];
+        $SQL = 'WHERE ' . $ModelTable->GetTableName() . '.' . $ModelTable->GetPrimaryKeyName()  . ' IN (';
+        if($DataDefinition['Type']=='ManyForeignObjects'){
+            
+            $Parameters = array();
+            $Count = 0;
+            foreach($List as $Item){
+                if($Item!=null){
+                    $Keys = $Item->GetObjectData($Field);
+                    $KeysList = explode(',', $Keys);
+                    foreach($KeysList as $Key){
+                        if($Count!=0){
+                            $SQL .=  ",";
+                        }
+                        $SQL .=  "'%s'";
+                        array_push($Parameters, $Key);
+                        $Count++;
+                    }
+
+                }
+            }
+            $SQL .= ')';
+        }
+        elseif($DataDefinition['Type']=='ForeignObject'){
+            $Parameters = array();
+            $Count = 0;
+            foreach($List as $Item){
+                if($Item!=null){
+                    $Key = $Item->GetObjectData($DataDefinition['ForeignKey']);
+                    if($Count!=0){
+                        $SQL .=  ",";
+                    }
+                    $SQL .=  "'%s'";
+                    array_push($Parameters, $Key);
+                    $Count++;
+                }
+            }
+            $SQL .= ')';
+        }
+        
+        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
+    }
 }
 
 ?>

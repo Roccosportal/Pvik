@@ -14,9 +14,6 @@ Class Core {
 
     public function __construct() {
         try {
-            
-            // get the file base
-            $RequestUri = $_SERVER['REQUEST_URI'];
             $RelativeFileBase = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']) ;
 
             self::$RelativeFileBase = $RelativeFileBase;
@@ -102,14 +99,18 @@ Class Core {
 
      protected function GetRoute() {
         $RouteMatch = null;
-
-
-        $Url = substr($_SERVER['REQUEST_URI'], strlen(self::$RelativeFileBase));
+         // get the file base
+        $RequestUri = $_SERVER['REQUEST_URI'];
         // Delete Parameters
-        $QueryStringPos = strpos($Url, '?');
+        $QueryStringPos = strpos($RequestUri, '?');
         If($QueryStringPos!== false){
-            $Url = substr($Url,0,  $QueryStringPos);
+            $RequestUri = substr($RequestUri,0,  $QueryStringPos);
         }
+        // urldecode for example cyrillic charset
+        $RequestUri = urldecode($RequestUri);
+
+        $Url = substr($RequestUri, strlen(self::$RelativeFileBase));
+
         if(strlen($Url)!=0){
             // add a / at the start if not already has
             if ($Url[0] != '/')
@@ -147,7 +148,10 @@ Class Core {
     protected function UrlIsMatching($OrignalUrl, $Route){
         $RouteUrl = $Route['Url'];
         $IsMatching = false;
-        if(strtolower($OrignalUrl) == $RouteUrl){
+        if($RouteUrl=='*'){
+            return true;
+        }
+        elseif(strtolower($OrignalUrl) == $RouteUrl){
             return true;
         }
         elseif (strpos($RouteUrl, '{') !== false && strpos($RouteUrl, '}') !== false) // contains a variable

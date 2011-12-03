@@ -13,6 +13,7 @@ class MySQLManager {
             throw new Exception('Database error: ' . mysql_error());
         }
         else {
+            mysql_set_charset('utf8', $this->Connection); 
             if (!mysql_select_db($MySQL['Database'])){
                 throw new Exception('Database error: ' . mysql_error());
             }

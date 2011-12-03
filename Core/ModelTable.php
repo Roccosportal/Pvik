@@ -54,7 +54,7 @@ class ModelTable {
     }
 
     public function GetByPrimaryKey($PrimaryKey){
-        if($PrimaryKey===0){
+        if($PrimaryKey===0||$PrimaryKey===null||$PrimaryKey===''){
             return null;
         }
         else{
@@ -108,6 +108,10 @@ class ModelTable {
     public function SelectList($Conditions,  $OrderBy, $Parameters = array()){
         $QueryString = SQLBuilder::CreateSelectStatement($this,$Conditions, $OrderBy);
         return SQLManager::FillList($this, $QueryString, $Parameters);
+    }
+    
+    public function SelectAll(){
+        return $this->SelectList('', '');
     }
 
     public function SelectSingle($Conditions, $OrderBy, $Parameters = array()){
@@ -206,6 +210,34 @@ class ModelTable {
         else {
             throw new Exception('Can\'t delete model cause it has no primary key.');
         }
+    }
+    public function ByPrimaryKeys($PrimaryKeys){
+        $Values =  SQLBuilder::CreateWhereStatementByPrimaryKeys($this, $PrimaryKeys);
+        return $this->SelectList($Values['SQL'], '', $Values['Parameters']);
+    }
+    
+    public function Preload(ModelArray $List, $Field){
+        $ListModelTable = null;
+        foreach($List as $Item){
+            if($Item!=null){
+                $ListModelTable = $Item->GetModelTable();
+                break;
+            }
+        } 
+        $Values = SQLBuilder::CreatePreloadStatement($this,$ListModelTable, $List, $Field);
+        if(count($Values['Parameters'])!= null){
+            return $this->SelectList($Values['SQL'], '', $Values['Parameters']);
+        }
+        else {
+            return null;
+        }
+    }
+    
+    public function SelectListByForeignKeys($Field, $Keys){
+        $InStatementResult = SQLBuilder::CreateInStatementForKeys($this, $Field, $Keys);
+        $WhereStatement = "WHERE " . $InStatementResult['SQL'] . " ";
+        $Parameters = $InStatementResult['Parameters'];
+        return $this->SelectList($WhereStatement, '', $Parameters);
     }
 
 }

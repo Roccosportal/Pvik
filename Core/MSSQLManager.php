@@ -8,7 +8,7 @@ class MSSQLManager {
 
     protected function __construct(){
         $MSSQL = Core::$Config['MSSQL'];
-        
+        ini_set('mssql.charset', 'UTF-8'); 
         $this->Connection = mssql_connect($MSSQL['Server'], $MSSQL['Username'], $MSSQL['Password']);
         if (!$this->Connection) {
             throw new Exception('Database error: ' . mssql_get_last_message());

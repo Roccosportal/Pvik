@@ -23,7 +23,7 @@ class Html {
 
     public static function StyleSheetLink($Path){
         $RelativePath = Core::RelativePath($Path);
-        $Html = '<link rel="stylesheet" type="text/css" href="' . $RelativePath . '" ></link>';
+        $Html = '<link rel="stylesheet" type="text/css" href="' . $RelativePath . '" />';
         echo $Html;
     }
 
@@ -35,8 +35,8 @@ class Html {
 
     public static function FaviconLink($Path){
         $RelativePath = Core::RelativePath($Path);
-        $Html = '<link rel="shortcut icon" href="'. $RelativePath . '" type="image/x-icon"></link>';
-        $Html .= '<link rel="icon" href="'. $RelativePath . '" type="image/x-icon"></link>';
+        $Html = '<link rel="shortcut icon" href="'. $RelativePath . '" type="image/x-icon" />';
+        $Html .= '<link rel="icon" href="'. $RelativePath . '" type="image/x-icon" />';
         echo $Html;
     }
 

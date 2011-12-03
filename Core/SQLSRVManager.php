@@ -9,7 +9,7 @@ class SQLSRVManager {
     protected function __construct(){
         $SQLSRV = Core::$Config['SQLSRV'];
         
-        $ConnectionOptions = array('Database'=>$SQLSRV['Database'], 'UID' => $SQLSRV['Username'], 'PWD' => $SQLSRV['Password']);
+        $ConnectionOptions = array('Database'=>$SQLSRV['Database'], 'UID' => $SQLSRV['Username'], 'PWD' => $SQLSRV['Password'],  "CharacterSet" => "UTF-8");
         $this->Connection = sqlsrv_connect( $SQLSRV['Server'], $ConnectionOptions);
         if ($this->Connection===false) {
             throw new Exception('Database error: ' . self::FormatErrors(sqlsrv_errors()));

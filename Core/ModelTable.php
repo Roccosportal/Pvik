@@ -188,15 +188,15 @@ class ModelTable {
             SQLManager::DeleteWithParameters($QueryString, $Parameters);
 
             // update foreign objects
-            foreach($this->GetDataDefinition() as $DefinitionKey => $Definition){
-                if($Definition['Type']=='ForeignKey'){
-                    $ForeignModelTable = ModelTable::Get($Definition['ModelTable']);
-                    $ForeignKey = $Object->GetObjectData($DefinitionKey);
+            foreach($this->GetDataDefinition() as $Field => $FieldDefinition){
+                if($FieldDefinition['Type']=='ForeignKey'){
+                    $ForeignModelTable = $this->GetFieldModelTable($Field);
+                    $ForeignKey = $Object->GetObjectData($Field);
                     $ForeignObject = $ForeignModelTable->GetFromCacheByPrimaryKey($ForeignKey);
                     // if object exist in cache and needs to be updated
                     if($ForeignObject!=null){
                         foreach($ForeignModelTable->GetDataDefinition() as $ForeignDefinitionKey => $ForeignDefinition){
-                            if($ForeignDefinition['Type']=='ManyForeignObjects'&&$ForeignDefinition['ForeignKey']==$DefinitionKey){
+                            if($ForeignDefinition['Type']=='ManyForeignObjects'&&$ForeignDefinition['ForeignKey']==$Field){
                                 $OldKeys = $ForeignObject->GetObjectData($ForeignDefinitionKey);
                                 // remove foreign key from key list
                                 $ForeignObject->UpdateObjectData($ForeignDefinitionKey, str_replace($ForeignKey, '', $OldKeys));
@@ -211,33 +211,78 @@ class ModelTable {
             throw new Exception('Can\'t delete model cause it has no primary key.');
         }
     }
-    public function ByPrimaryKeys($PrimaryKeys){
+    public function SelectByPrimaryKeys($PrimaryKeys){
         $Values =  SQLBuilder::CreateWhereStatementByPrimaryKeys($this, $PrimaryKeys);
         return $this->SelectList($Values['SQL'], '', $Values['Parameters']);
-    }
-    
-    public function Preload(ModelArray $List, $Field){
-        $ListModelTable = null;
-        foreach($List as $Item){
-            if($Item!=null){
-                $ListModelTable = $Item->GetModelTable();
-                break;
-            }
-        } 
-        $Values = SQLBuilder::CreatePreloadStatement($this,$ListModelTable, $List, $Field);
-        if(count($Values['Parameters'])!= null){
-            return $this->SelectList($Values['SQL'], '', $Values['Parameters']);
-        }
-        else {
-            return null;
-        }
-    }
+    }  
     
     public function SelectListByForeignKeys($Field, $Keys){
         $InStatementResult = SQLBuilder::CreateInStatementForKeys($this, $Field, $Keys);
         $WhereStatement = "WHERE " . $InStatementResult['SQL'] . " ";
         $Parameters = $InStatementResult['Parameters'];
         return $this->SelectList($WhereStatement, '', $Parameters);
+    }
+    
+    public function GetFieldDefinition($Field){
+        $DataDefintion = $this->GetDataDefinition();
+        if(isset($DataDefintion[$Field])){
+            return $DataDefintion[$Field];
+        }
+        return null;
+    }
+    
+    public function GetFieldModelTableName($Field){
+        $FieldDefinition = $this->GetFieldDefinition($Field);
+        if($FieldDefinition!=null){
+            switch($FieldDefinition['Type']){
+                    case 'ManyForeignObjects':
+                        return $FieldDefinition['ModelTable'];
+                        break;
+                    case 'ForeignObject':
+                        $ForeignKeyFieldDefiniton = $this->GetFieldDefinition($FieldDefinition['ForeignKey']);
+                        if($ForeignKeyFieldDefiniton!=null){
+                            return $ForeignKeyFieldDefiniton['ModelTable'];
+                        }
+                        break;
+            }
+        }
+        return null;
+    }
+    
+    public function GetFieldModelTable($Field){
+        $Name = $this->GetFieldModelTableName($Field);
+        if($Name!=null){
+            ModelTable::Get($Name);
+        }
+        return null;
+    }
+    
+    public function Load($Keys){
+        // convert to array
+        $List = new ModelArray();
+        $List->SetModelTable($this);
+        $LoadKeys = array();
+        foreach($Keys as $Key){
+            if(!empty($Key)){
+                // search in cache
+                $Item = $this->GetFromCacheByPrimaryKey($Key);
+                // mark for loading later
+                if($Item==null){
+                    array_push($LoadKeys, $Key);
+                }
+                else {
+                    $List->append($Item);
+                }
+            }
+        }
+        if(!empty($LoadKeys)){
+            // now load every data we didn't find in the cache
+            $LoadedItems = $this->SelectByPrimaryKeys($LoadKeys);
+            foreach($LoadedItems as $LoadedItem){
+                 $List->append($LoadedItem);
+            }
+        }
+        return $List;
     }
 
 }

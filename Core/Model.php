@@ -6,7 +6,6 @@ class Model {
     public function Fill($Data = array()){
         // fill this class with the data
         foreach($Data as $Key => $Value){
-           
             $this->Data[$Key] =  $Value;
         }
         $ModelTable = $this->GetModelTable();
@@ -47,7 +46,6 @@ class Model {
 
                     // get the model definition name
                     $ModelTableName = $ForeignKeyDefinition['ModelTable'];
-
                     if(isset($ForeignKey)){
                         // try to get the foreign object
                         return ModelTable::Get($ModelTableName)->GetByPrimaryKey($ForeignKey);
@@ -59,37 +57,15 @@ class Model {
                     break;
                 case 'ManyForeignObjects':
                     $Keys = $this->GetObjectData($Key);
+                    $ModelTableName = $DataDefinition[$Key]['ModelTable'];
+                    $ModelTable =  ModelTable::Get($ModelTableName);
                     if($Keys==null){
-                        return new ModelArray();
+                        $ModelArray = new ModelArray();
+                        $ModelArray->SetModelTable($ModelTable);
+                        return $ModelArray;
                     }
                     if(isset($Keys)){
-                        $List = new ModelArray();
-                        $ModelTableName = $DataDefinition[$Key]['ModelTable'];
-                        // convert to array
-                        $ForeignKeys = explode(',', $Keys);
-                        $LoadKeys = array();
-                        foreach($ForeignKeys as $ForeignKey){
-                            if(!empty($ForeignKey)){
-                                // search in cache
-                                $Item = ModelTable::Get($ModelTableName)->GetFromCacheByPrimaryKey($ForeignKey);
-                                
-                                // mark for loading later
-                                if($Item==null){
-                                    array_push($LoadKeys, $ForeignKey);
-                                }
-                                else {
-                                    $List->append($Item);
-                                }
-                            }
-                        }
-                        if(!empty($LoadKeys)){
-                            // now load every data we didn't find in the cache
-                            $LoadedItems = ModelTable::Get($ModelTableName)->ByPrimaryKeys($LoadKeys);
-                            foreach($LoadedItems as $LoadedItem){
-                                 $List->append($LoadedItem);
-                            }
-                        }
-                        return $List;
+                         return $ModelTable->Load(explode(',', $Keys));
                     }
                     else {
                         throw new Exception('Foreign keys for '. $Key . ' not found.');
@@ -215,7 +191,7 @@ class Model {
         if($KeysString!=null){
             return explode(',', $KeysString);
         }else {
-            return null;
+            return array();
         }
     }
 }

@@ -64,7 +64,7 @@ class MySQLBuilder {
                     // get definition for the foreign table
                     $ForeignModelTable =  ModelTable::Get($Definition['ModelTable']);
                     // generate group_conact
-                    $SQL.= 'GROUP_CONCAT(' . self::SQLAttribute($ModelTable,$ForeignModelTable->GetPrimaryKeyName(), '',$Alias  ) .') as '. $Key;
+                    $SQL.= 'GROUP_CONCAT(DISTINCT ' . self::SQLAttribute($ModelTable,$ForeignModelTable->GetPrimaryKeyName(), '',$Alias  ) .') as '. $Key;
                     $Join = true;
                     $Count++;
                     break;
@@ -305,54 +305,6 @@ class MySQLBuilder {
             $Count++;
         }
         $SQL .= ')';
-        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
-    }
-    
-     public static function CreatePreloadStatement(ModelTable $ModelTable,ModelTable $ListModelTable, ModelArray $List, $Field){
-        $DataDefinitions = $ListModelTable->GetDataDefinition(); 
-        if(!isset($DataDefinitions[$Field])) {
-            throw new Exception('The field must be a field from the data definition.');
-        }
-        $DataDefinition = $DataDefinitions[$Field];
-        $SQL = 'WHERE ' . $ModelTable->GetTableName() . '.' . $ModelTable->GetPrimaryKeyName()  . ' IN (';
-        if($DataDefinition['Type']=='ManyForeignObjects'){
-            
-            $Parameters = array();
-            $Count = 0;
-            foreach($List as $Item){
-                if($Item!=null){
-                    $Keys = $Item->GetObjectData($Field);
-                    $KeysList = explode(',', $Keys);
-                    foreach($KeysList as $Key){
-                        if($Count!=0){
-                            $SQL .=  ",";
-                        }
-                        $SQL .=  "'%s'";
-                        array_push($Parameters, $Key);
-                        $Count++;
-                    }
-
-                }
-            }
-            $SQL .= ')';
-        }
-        elseif($DataDefinition['Type']=='ForeignObject'){
-            $Parameters = array();
-            $Count = 0;
-            foreach($List as $Item){
-                if($Item!=null){
-                    $Key = $Item->GetObjectData($DataDefinition['ForeignKey']);
-                    if($Count!=0){
-                        $SQL .=  ",";
-                    }
-                    $SQL .=  "'%s'";
-                    array_push($Parameters, $Key);
-                    $Count++;
-                }
-            }
-            $SQL .= ')';
-        }
-        
         return array ('SQL' => $SQL, 'Parameters' => $Parameters);
     }
 }

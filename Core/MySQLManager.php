@@ -22,14 +22,15 @@ class MySQLManager {
 
     /*
     protected function __destruct(){
-        /*
+        
         if(!$this->Connection){
             mysql_close($this->Connection);
         }
-         * *
          
     }
-    */
+     * 
+     */
+    
 
     protected static function Connect(){
         if(self::$Instance==null){
@@ -99,7 +100,8 @@ class MySQLManager {
     
     public static function FillList(ModelTable $ModelTable, $QueryString, $Parameters){
         $Result = SQLManager::SelectWithParameters($QueryString, $Parameters);
-        $List = new ModelArray(array(), ArrayObject::STD_PROP_LIST);
+        $List = new ModelArray();
+        $List->SetModelTable($ModelTable);
         while ($Data = mysql_fetch_assoc($Result)) {
             $Classname = $ModelTable->GetModelClassName() . 'Model';
             $Model = new $Classname();

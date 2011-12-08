@@ -22,14 +22,15 @@ class SQLSRVManager {
 
     /*
     protected function __destruct(){
-        /*
+        
         if(!$this->Connection){
-            mysql_close($this->Connection);
+            sqlsrv_close($this->Connection);
         }
-         * *
          
     }
-    */
+     * */
+     
+    
 
     protected static function Connect(){
         if(self::$Instance==null){
@@ -100,8 +101,9 @@ class SQLSRVManager {
     
     public static function FillList(ModelTable $ModelTable, $QueryString, $Parameters){
         $Result = SQLManager::SelectWithParameters($QueryString, $Parameters);
-        $List = new ModelArray(array(), ArrayObject::STD_PROP_LIST);
-        while ($Data = sqlsrv_fetch_array($Result)) {
+        $List = new ModelArray();
+        $List->SetModelTable($ModelTable);
+        while ($Data = sqlsrv_fetch_array($Result, SQLSRV_FETCH_ASSOC)) {
             $Classname = $ModelTable->GetModelClassName() . 'Model';
             $Model = new $Classname();
             $Model->Fill($Data);

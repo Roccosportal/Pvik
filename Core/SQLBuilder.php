@@ -87,17 +87,6 @@ class SQLBuilder {
         }
     }
     
-     public static function CreatePreloadStatement(ModelTable $ModelTable,ModelTable $ListModelTable, $List, $Field){
-        if(SQLManager::GetDatabaseSystem()=='MySQL'){
-            return MySQLBuilder::CreatePreloadStatement($ModelTable,$ListModelTable, $List, $Field);
-        }
-        elseif(SQLManager::GetDatabaseSystem()=='MSSQL' || SQLManager::GetDatabaseSystem()=='SQLSRV'){ // SQLSRV and MSSQL using the same SQL syntax 
-            return MSSQLBuilder::CreatePreloadStatement($ModelTable,$ListModelTable, $List, $Field);
-        }
-        else {
-            throw new Exception('Couldn\'t find the correct SQLBuilder. Probably misconfigured config file.');
-        }
-    }
     
 }
 ?>

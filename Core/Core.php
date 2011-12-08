@@ -14,6 +14,8 @@ Class Core {
 
     public function __construct() {
         try {
+            
+            date_default_timezone_set('UTC');
             $RelativeFileBase = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']) ;
 
             self::$RelativeFileBase = $RelativeFileBase;

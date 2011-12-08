@@ -55,6 +55,13 @@
             <li><a href="#model-7">Delete</a></li>
         </ul>
     </li>
+    <li><a href="#model-array">ModelArray</a>
+    <ul>
+            <li><a href="#model-array-1">Sorting</a></li>
+            <li><a href="#model-array-2">Filtering</a></li>
+            <li><a href="#model-array-3">Perfomance</a></li>
+        </ul>
+    </li>
     <li><a href="#redirecting">Redirecting</a></li>
     <li><a href="#logging">Logging</a></li>
     <li><a href="#keyvaluearray">KeyValueArray</a></li>
@@ -283,7 +290,7 @@ class BookModel extends Model {
 <p>A action in the controller to select data could look like this:</p>
 <pre class="brush: php">public function Index(){
     // select one author by id
-    $Author = ModelTable::Get('Author')-&gt;GetByPrimaryKey('1');
+    $Author = ModelTable::Get('Author')-&gt;Load('1');
 
     // select all authors
     $Authors = ModelTable::Get('Author')-&gt;SelectList('', '');
@@ -400,6 +407,78 @@ $Books = $this-&gt;ViewData-&gt;Get('Books');
     // delete the author
     $Author-&gt;Delete();
 }</pre>
+<h2 id="model-array">ModelArray</h2>
+<p>
+    If you get a list from the 'ModelTable' class you get a object from 'ModelArray' which offers some useful functions. Also, you can create a object of ModelArray by yourself and because it extends the php class 'ArrayObject' it acts like a array.
+</p>
+<pre class="brush: php">
+$List = new ModelArray();
+// you can set the model table but it is only neccessary for some special functions
+$List-&gt;SetModelTable(ModelTable::Get('Table'));
+$List-&gt;append($ObjectOfAModel);
+</pre>
+<h3 id="model-array-1">Sorting</h3>
+<p>
+    You have some easy use sorting function, which sort the 'ModelArray'
+</p>
+<pre class="brush: php">
+// sort ascending for the field name
+$List-&gt;Sort('Name'); // same as $List-&gt;Sort('+Name');
+// sort descending for the field name
+$List-&gt;Sort('-Name');
+// sort ascending for the field name and then title
+$List-&gt;Sort('Name', 'Title');
+
+// the list contains a ForeignObject and you can sort by it values
+$List-&gt;Sort('Author-&gt;Name', 'Author-&gt;Publisher-&gt;Country-&gt;Name');
+// or sort it descending and after title
+$List-&gt;Sort('Author-&gt;Name', '-Author-&gt;Publisher-&gt;Country-&gt;Name', 'Title');
+</pre>
+<h3 id="model-array-2">Filtering</h3>
+<p>A filter method returns a new filtered 'ModelArray'.</p>
+<pre class="brush: php">
+// these function should be self explaining
+$FilteredList = $List-&gt;FilterEquals('IsVisible', true);
+$FilteredList = $List-&gt;FilterNotEquals('Name', 'Test');
+$FilteredList = $List-&gt;FilterHeigher('Number', 10);
+$FilteredList = $List-&gt;FilterHeigherEquals('Number', 10);
+$FilteredList = $List-&gt;FilterLower('Number', 10);
+$FilteredList = $List-&gt;FilterLowerEquals('Number', 10);
+$FilteredList = $List-&gt;FilterStartsWith('Name', 'A');
+$FilteredList = $List-&gt;FilterEndsWith('Name', 'Z');
+$FilteredList = $List-&gt;FilterContains('Name', 'foo');
+$FilteredList = $List-&gt;FilterIn('Name', array ('Hans', 'Peter'));
+$FilteredList = $List-&gt;FilterNotIn('Name', array ('Klaus', 'Karl'));
+
+// you can also merge two lists
+// this filter selects every item with none id or 1 or 2 as a id
+$FilteredList = $List-&gt;FilterEquals('ID', null)->Merge($List-&gt;FilterIn('ID', array ('1', '2')));
+</pre>
+<h3 id="model-array-3">Perfomance</h3>
+<p>
+    Pvik supports lazy loading but sometimes you want to load all data just in one query.
+    Imagine we have a list of 500 books and for every book we want to display the authors name. For every book a single request to the database would be submited.
+    If the data are loaded once Pvik keeps them in the cache. So we just can call the 'Load' Method.
+</p>
+<pre class="brush: php">
+$Books-&gt;Load('Author'); // without this statement Pvik would make for every book a single request
+foreach($Books as $Book){
+    echo $Book-&gt;Author-&gt;Name;
+}
+
+// you also can load other data
+$Books-&gt;Load('Author-&gt;Publisher-&gt;Country')
+foreach($Books as $Book){
+    echo $Book-&gt;Author-&gt;Publisher-&gt;Country-&gt;Name;
+}
+// even if it is a 'ManyForeignObject'
+$Books-&gt;Load('Buyers-&gt;Country')
+foreach($Books as $Book){
+    foreach($Book-&gt;Buyers as $Buyer){
+        echo $Buyer-&gt;Country-&gt;Name;
+    }
+}
+</pre>
 <h2 id="redirecting">Redirecting</h2>
 <p>There are two ways for redirecting. Redirecting to a path or redirecting to a controller. If you redirect to a path the browser will redirect to the given page. The other redirect is a server inside redirect and the url in the browser stays the same.</p>
 <pre class="brush: php">public function Redirect(){

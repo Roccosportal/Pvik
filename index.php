@@ -1,4 +1,4 @@
 <?php
-    require_once ("./Core/Core.php");
+    require_once ("./core/core.php");
     $Core = new Core(); 
 ?>

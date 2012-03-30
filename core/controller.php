@@ -19,7 +19,7 @@ class Controller {
         Log::WriteLine('Redirecting to action view: ' . $ActionName );
         $ViewPath = ControllerManager::GetViewPathByAction($ActionName);
         if($ViewPath=="")
-            throw new Exception('No view found in ~/Views/~/' . ControllerManager::GetControllerName () . '/' . ControllerManager::GetActionName(). '.php');
+            throw new Exception('No view found in ~/views/~/' . ControllerManager::GetControllerName () . '/' . ControllerManager::GetActionName(). '.php');
 
         ViewManager::ExecuteView($ViewPath, $this);
     }
@@ -27,7 +27,7 @@ class Controller {
     protected function ExecuteView(){
         $ViewPath = ControllerManager::GetViewPath();
         if($ViewPath=="")
-            throw new Exception('No view found in ~/Views/~/' . ControllerManager::GetControllerName () . '/' . ControllerManager::GetActionName(). '.php');
+            throw new Exception('No view found in ~/views/~/' . ControllerManager::GetControllerName () . '/' . ControllerManager::GetActionName(). '.php');
 
         ViewManager::ExecuteView($ViewPath, $this);
     }

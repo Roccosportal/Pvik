@@ -2,13 +2,13 @@ RewriteEngine on
 
 
 #No access to sensitive directory
-RewriteRule ^Code\/.*$ index.php [L]
-RewriteRule ^Config\/.*$ index.php [L]
-RewriteRule ^Controllers\/.*$ index.php [L]
-RewriteRule ^Core\/.*$ index.php [L]
-RewriteRule ^Model\/.*$ index.php [L]
-RewriteRule ^Views\/.*$ index.php [L]
-RewriteRule ^Files\/.*$ index.php [L]
+RewriteRule ^code\/.*$ index.php [L]
+RewriteRule ^config\/.*$ index.php [L]
+RewriteRule ^controllers\/.*$ index.php [L]
+RewriteRule ^core\/.*$ index.php [L]
+RewriteRule ^model\/.*$ index.php [L]
+RewriteRule ^views\/.*$ index.php [L]
+RewriteRule ^files\/.*$ index.php [L]
 
 RewriteCond  %{REQUEST_FILENAME} !-f
 RewriteCond  %{REQUEST_FILENAME} !-d

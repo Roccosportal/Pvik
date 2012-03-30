@@ -14,7 +14,6 @@ Class Core {
 
     public function __construct() {
         try {
-            
             date_default_timezone_set('UTC');
             $RelativeFileBase = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']) ;
 
@@ -201,11 +200,11 @@ Class Core {
         self::$Config = array();
 
         // load at first default values
-        require(Core::RealPath('~/Configs/DefaultConfig.php'));
+        require(Core::RealPath('~/configs/default-config.php'));
 
         // overwrite them
-        require(Core::RealPath('~/Configs/Config.php'));
-        Log::WriteLine('Loaded: Config.php');
+        require(Core::RealPath('~/configs/config.php'));
+        Log::WriteLine('Loaded: config.php');
     }
 
 
@@ -298,6 +297,11 @@ Class Core {
             return $Uuid;
         }
     }
+    
+    public static function ConvertNameToPath($Name){
+        $ProcessingName = preg_replace("/([a-z])([A-Z][A-Za-z0-9])/", '${1}-${2}', $Name);
+        return strtolower($ProcessingName);
+    }
 
 
 }
@@ -312,9 +316,9 @@ Class Log {
         $this->LogTrace = array();
         $date = new DateTime();
         if (Core::$Config['Log']['UseOneFile'] == false) {
-            $GeneratedFilePath = Core::RealPath('~/Logs') . '/Log' . $date->getTimestamp() . '.txt';
+            $GeneratedFilePath = Core::RealPath('~/logs') . '/log-' . $date->getTimestamp() . '.txt';
         } else {
-            $GeneratedFilePath = Core::RealPath('~/Logs/LogFile.txt');
+            $GeneratedFilePath = Core::RealPath('~/logs/log-file.txt');
         }
 
         $this->LogFileHandle = fopen($GeneratedFilePath, 'w');

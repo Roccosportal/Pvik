@@ -16,9 +16,10 @@ class ControllerManager {
         return self::GetViewPathByAction(self::$ActionName);
     }
 
-    public static function GetViewPathByAction($ActionFileName){
-        $FolderPath = Core::RealPath('~/Views');
-        $Path = self::SearchForView($FolderPath, self::$ControllerName, $ActionFileName .'.php');
+    public static function GetViewPathByAction($ActionName){
+        
+        $FolderPath = Core::RealPath('~/views');
+        $Path = self::SearchForView($FolderPath, Core::ConvertNameToPath(self::$ControllerName), Core::ConvertNameToPath($ActionName) .'.php');
         Log::WriteLine('ViewPath: ' . $Path);
         return $Path;
     }

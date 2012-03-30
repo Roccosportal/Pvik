@@ -3,16 +3,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+	    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
 	    <title>Pvik HowTo</title>
-	<link rel="stylesheet" type="text/css" href="Css/Reset.css" ></link>
-	<link rel="stylesheet" type="text/css" href="Css/Reset.css" ></link>
-	<link rel="stylesheet" type="text/css" href="Css/ShCore.css" ></link>
-	<link rel="stylesheet" type="text/css" href="Css/ShThemeDefault.css" ></link>
-	<link rel="stylesheet" type="text/css" href="Css/General.css" ></link> 
-	<script type="text/javascript" src="Js/ShCore.js"></script>
-	<script type="text/javascript" src="Js/ShBrushPhp.js"></script>
-	<script type="text/javascript" src="Js/ShBrushXml.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/reset.css" ></link>
+	<link rel="stylesheet" type="text/css" href="css/sh-core.css" ></link>
+	<link rel="stylesheet" type="text/css" href="css/sh-theme-default.css" ></link>
+	<link rel="stylesheet" type="text/css" href="css/general.css" ></link> 
+	<script type="text/javascript" src="js/sh-core.js"></script>
+	<script type="text/javascript" src="js/sh-brush-php.js"></script>
+	<script type="text/javascript" src="js/sh-brush-xml.js"></script>
 	<script type="text/javascript">
 	     SyntaxHighlighter.all()
 	</script>
@@ -20,7 +19,7 @@
 <body>
 <div id="global">
 <div id="header">
-<h1>Pvik HowTo</h1>
+<h1>pvik HowTo</h1>
 </div>
 <div id="main">
 <div id="menu">
@@ -29,6 +28,7 @@
     <li><a href="#general">General</a></li>
     <li><a href="#requirements">Requirements</a></li>
     <li><a href="#install">Install</a></li>
+    <li><a href="#naming-conventions">Naming conventions</a></li>
     <li><a href="#create-hello-world">Create hello world</a>
         <ul>
             <li><a href="#create-hello-world-1">Create a controller</a></li>
@@ -78,20 +78,33 @@
 <p>
     Pvik uses the MVC concept, that devides applications into model, view and controller.
     You need to understand the concept before you working with Pvik. You find the differents
-    parts in the folder '/Model/', '/Views/' and '/Controllers/'. Pvik use advanced urls which
+    parts in the folder '/model/', '/views/' and '/controllers/'. Pvik use advanced urls which
     are called routes. If a route gets called the route calls the assign action method from the
-    asigned controller. You find the configuration file 'Config.php' in the folder '/Configs/'.
-    Every folder, file, class and method begins with a capital letter and uses the camel casing.
+    asigned controller. You find the configuration file 'config.php' in the folder '/configs/'.
+    
 </p>
 <h2 id="requirements">Requirements</h2>
 <p>You need a webserver (Apache2 recommended) with installed PHP5. You need permissions to overwrite the access controlling via a .htaccess file. RewriteEngine must be activated.</p>
 <p>Pvik supports MySQL and MS SQL Server, but a database is not necessary to work with Pvik.</p>
 <h2 id="install">Install</h2>
-<p>To install Pvik you just need to copy the files to the webserver folder. If you use logging you need to set write permissions for the folder '/Logs/'.</p>
+<p>To install Pvik you just need to copy the files to the webserver folder. If you use logging you need to set write permissions for the folder '/logs/'.</p>
+<h2 id="naming-conventions">Naming conventions</h2>
+<p>Folder and files are in small letters and words are separated through a dash. Code, like variables, classes and methods begins with a capital letter and uses camel casing.</p>
+<pre class="brush: html"> 
+# file and folders
+/controllers/first-page-controller.php
+/views/first-page/add-comment.php
+/some-folder/test.php
+
+# variables, classes methods and more
+MyNewClass #class
+FullName #variable
+ConvertSomething #method
+</pre>
 <h2 id="create-hello-world">Create hello world</h2>
 <p>Basis is a empty pvik template.</p>
 <h3 id="create-hello-world-1">Create a controller</h3>
-<p>Create the file 'HelloWorldController.php' in the folder '/Controller/' with following content:</p>
+<p>Create the file 'hello-world-controller.php' in the folder '/controller/' with following content:</p>
 <pre class="brush: php">
 &lt;?php
 class HelloWorldController extends Controller {
@@ -101,9 +114,9 @@ class HelloWorldController extends Controller {
 		$this-&gt;ExecuteView();
 	}				
 }
-?&gt</pre>
+?&gt;</pre>
 <h3 id="create-hello-world-2">Create a view</h3>
-<p>Create the folder 'HelloWorld' in the folder '/Views/'. Create the file 'Index.php' in the folder '/Views/HelloWorld/' with follwing content:</p>
+<p>Create the folder 'hello-world' in the folder '/views/'. Create the file 'index.php' in the folder '/views/hello-world/' with follwing content:</p>
 <pre class="brush: php; html-script: true">
 &lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot;
        &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
@@ -119,14 +132,14 @@ class HelloWorldController extends Controller {
 &lt;/body&gt;
 &lt;/html&gt;</pre>
 <h3 id="create-hello-world-3">Register route</h3>
-<p>Open the file 'Config.php' in the folder '/Configs/' and add following code to the end:</p>
+<p>Open the file 'config.php' in the folder '/configs/' and add following code to the end:</p>
 <pre class="brush: php">self::$Config[&#39;Routes&#39;] = array (
     array (&#39;Url&#39; =&gt; &#39;/&#39;, &#39;Controller&#39; =&gt; &#39;HelloWorld&#39;, &#39;Action&#39; =&gt; &#39;Index&#39;)
 );</pre>
 <p>Open the website and you will see your 'Hello World' page.</p>
 <h2 id="masterpage">Masterpage</h2>
 <h3 id="masterpage-1">Create masterpage</h3>
-<p>Create the folder 'MasterPages' in the folder '/Views/'. Create the file 'Master.php' in the folder '/Views/MasterPages/' with follwing content:</p>
+<p>Create the folder 'master-pages' in the folder '/views/'. Create the file 'master.php' in the folder '/views/master-pages/' with follwing content:</p>
 <pre class="brush: php; html-script: true">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot;
        &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
 &lt;html&gt;
@@ -140,8 +153,8 @@ class HelloWorldController extends Controller {
 &lt;/body&gt;
 &lt;/html&gt;</pre>
 <h3 id="masterpage-2">Create view</h3>
-<p>Update the 'Index.php' in the folder '/Views/HelloWorld/' to following content:</p>
-<pre class="brush: php; html-script: true">&lt;?php $this-&gt;UseMasterPage(&#39;~/Views/MasterPages/Master.php&#39;); ?&gt;
+<p>Update the 'index.php' in the folder '/views/hello-world/' to following content:</p>
+<pre class="brush: php; html-script: true">&lt;?php $this-&gt;UseMasterPage(&#39;~/views/master-pages/master.php&#39;); ?&gt;
 &lt;?php $this-&gt;StartContent(&#39;Head&#39;); ?&gt;
 	&lt;style&gt;
 	h1 {color:red;}
@@ -220,7 +233,7 @@ Books
 - BookID (int, primarykey, auto increment)
 - Title (text)
 - AuthorID (int)</code></pre>
-<p>A model file (/Model/AuthorModel.php) for the author could look like this: </p>
+<p>A model file (/model/author-model.php) for the author could look like this: </p>
 <pre class="brush: php">&lt;?php
 class AuthorsModelTable extends ModelTable {
     public function __construct(){
@@ -251,7 +264,7 @@ class AuthorModel extends Model {
     }
 }
 ?&gt;</pre>
-<p>And the model file for the book (/Model/BookModel.php):</p>
+<p>And the model file for the book (/model/book-model.php):</p>
 <pre class="brush: php">&lt;?php
 class BooksModelTable extends ModelTable {
     public function __construct(){
@@ -494,11 +507,11 @@ public function Redirect2(){
 
 public function Redirect3(){
     // redirect to a subpage
-    $this-&gt;RedirectToPath('~/Subpage/');
+    $this-&gt;RedirectToPath('~/subpage/');
 }
 </pre>
 <h2 id="logging">Logging</h2>
-<p>For debbuging cases you should use logging. You will find the file in the '/Logs/' folder. Enable logging in the config:</p>
+<p>For debbuging cases you should use logging. You will find the file in the '/logs/' folder. Enable logging in the config:</p>
 <pre class="brush: php">// enable logging
 self::$Config['Log']['On'] = true;
 // use one log file (otherwise for every access a new log file will be created)
@@ -520,50 +533,50 @@ if(!$Array-&gt;IsNotEmpty('AnotherKey')){
 
 $Array-&gt;Set('Key1', 'Something New');</pre>
 <h2 id="auto-code-include">Auto code include</h2>
-<p>Pvik automatically include all php files in the folders '/Core/', '/Code/', '/Model/' and '/Controllers/'. You can change this in the config via:</p>
-<pre class="brush: php">self::$Config['IncludeFolders'] = array ('~/Core', '~/Code', '~/Model', '~/Controllers');</pre>
+<p>Pvik automatically include all php files in the folders '/core/', '/code/', '/model/' and '/controllers/'. You can change this in the config via:</p>
+<pre class="brush: php">self::$Config['IncludeFolders'] = array ('~/core', '~/code', '~/model', '~/controllers');</pre>
 <p>If a code file depends from a other file you should use this code to be sure that all files are included in the correct way:</p>
-<pre class="brush: php"><// file depends from other file (should be the first statement in the file)
-Core::Depends('~/Code/ClassA.php');
+<pre class="brush: php">// file depends from other file (should be the first statement in the file)
+Core::Depends('~/code/class-a.php');
 
 class ClassB extends ClassA {
 
 }</code></pre>
 <h2 id="deny-access-to-folder">Deny access to folder</h2>
 <p>You should deny access to sensitive folders via the .htaccess file by redirecting to the index.php file.
-Pvik denys the access to the folder '/Code/', '/Config/', '/Controllers/', '/Core/', '/Model/' and '/Views/'.
-Add this code to the .htaccess file to deny access to a folder ('/SomeFolder/' in this case):
+Pvik denys the access to the folder '/code/', '/config/', '/controllers/', '/core/', '/model/' and '/views/'.
+Add this code to the .htaccess file to deny access to a folder ('/some-folder/' in this case):
 </p>
-<pre><code>RewriteRule ^SomeFolder\/.*$ index.php [L]</code></pre>
+<pre><code>RewriteRule ^some-folder\/.*$ index.php [L]</code></pre>
 <h2 id="paths">Paths</h2>
 <p>Pvik offers two methods to resolve paths. There a two different types of paths. A absolut path should be used for including php files. A relative path should be used for including stylesheet or link paths. '~/' will be replaced with the correct path. Absolut path:</p>
-<pre class="brush: php">&lt;include(Core::RealPath('~/Code/File.php'));</pre>
+<pre class="brush: php">&lt;include(Core::RealPath('~/code/file.php'));</pre>
 <p>Relative path:</p>
 <pre class="brush: php; html-script: true">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot;
        &quot;http://www.w3.org/TR/html4/loose.dtd&quot;&gt;
 &lt;html&gt;
 &lt;head&gt;
 &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot;
- href=&quot;&lt;?php echo Core::RelativePath(&#39;~/Css/Style.css&#39;); ?&gt;&quot;&gt;
+ href=&quot;&lt;?php echo Core::RelativePath(&#39;~/css/style.css&#39;); ?&gt;&quot;&gt;
 &lt;!-- better use this methods--&gt;
-&lt;?php Html::StyleSheetLink(&#39;~/Css/Style2.css&#39;); ?&gt;
-&lt;?php Html::JavaScriptLink(&#39;~/Js/jquery-1.6.1.min.js&#39;); ?&gt;
+&lt;?php Html::StyleSheetLink(&#39;~/css/style2.css&#39;); ?&gt;
+&lt;?php Html::JavaScriptLink(&#39;~/js/jquery-1.6.1.min.js&#39;); ?&gt;
 &lt;/head&gt;
 &lt;body&gt;
-&lt;a href=&quot;&lt;?php echo Core::RelativePath(&#39;~/Books/&#39;); ?&gt;&quot;&gt;Books&lt;/a&gt;
+&lt;a href=&quot;&lt;?php echo Core::RelativePath(&#39;~/books/&#39;); ?&gt;&quot;&gt;Books&lt;/a&gt;
 &lt;!-- better use this method--&gt;
-&lt;?php Html::Link(&#39;~/Authors/&#39;, &#39;Author&#39;); ?&gt;
+&lt;?php Html::Link(&#39;~/authors/&#39;, &#39;Author&#39;); ?&gt;
 &lt;/body&gt;
 &lt;/html&gt;</pre>
 <p>You should use the relative path methods to make sure that you have the correct path in any case like using Pvik in a subfolder.</p>
 <h2 id="exceptions">Exceptions</h2>
 <p>
-    By default pvik opens after a unhandled exception the error masterpage ('/Views/Errorpages/Master.php') which show a lot of usefull information.
+    By default pvik opens after a unhandled exception the error masterpage ('/views/error-pages/master.php') which show a lot of usefull information.
     You can configure the exception handling via the config:
 </p>
 <pre class="brush: php">self::$Config[&#39;ErrorPages&#39;] = array (
-    &#39;NoRouteFoundException&#39; =&gt; &#39;~/Views/Errorpages/NoRouteFound.php&#39;,
-    &#39;Default&#39; =&gt; &#39;~/Views/Errorpages/Master.php&#39;
+    &#39;NoRouteFoundException&#39; =&gt; &#39;~/views/error-pages/no-route-found.php&#39;,
+    &#39;Default&#39; =&gt; &#39;~/views/error-pages/master.php&#39;
 );</pre>
 <p>
     In this case we set a new errorpage for the 'NoRouteFoundException'. The errorpage could be a simple redirect to the index file:
@@ -645,12 +658,12 @@ header(&quot;Location: &quot;. Core::RelativePath(&#39;~/&#39;));
 </p>
 <pre class="brush: php">self::$Config['UnderConstruction']['Enabled'] = false;</pre>
 <p class="info">
-    Info: Make sure that you updated the 'UnderConstruction.php' in '/Views/Other/'.
+    Info: Make sure that you updated the 'under-construction.php' in '/views/other/'.
 </p>
 <p>
     You can change the path to the web page by setting the 'path' value.
 </p>
-<pre class="brush: php">self::$Config['UnderConstruction']['Path'] = '~/Views/Other/UnderConstruction.php';</pre>
+<pre class="brush: php">self::$Config['UnderConstruction']['Path'] = '~/views/other/under-construction.php';</pre>
 </div>
 </div>
 </body>

@@ -2,48 +2,126 @@
 
 class ModelTable {
     // -- static --
+    /**
+     * Contains the instances of loaded ModelTables
+     * @var array 
+     */
     protected static $ModelTables = array();
-
-    public static function Get($Name){
+    /**
+     * Gets a ModelTable instance or creates a new one if a instance doesn't exsists yet.
+     * @return ModelTable
+     */
+    public static function Get($ModelTableName){
+        if(!is_string($ModelTableName)){
+            throw new Exception('ModelTableName must be a string.');
+        }
         // instance already stored
-        if(isset(self::$ModelTables[$Name])){
-            return self::$ModelTables[$Name];
+        if(isset(self::$ModelTables[$ModelTableName])){
+            return self::$ModelTables[$ModelTableName];
         }
         else {
             // create new instance
-            $ClassName = $Name . 'ModelTable';
-            if(class_exists($ClassName)){
+            if(self::Exists($ModelTableName)){
+                $ClassName = $ModelTableName . 'ModelTable';
                 $Instance = new $ClassName();
-                self::$ModelTables[$Name] = $Instance;
+                self::$ModelTables[$ModelTableName] = $Instance;
                 return $Instance;
             }
             else {
-                throw new Exception('Model table class for ' . $Name . ' not found.');
+                throw new Exception('Model table class for ' . $ModelTableName . ' not found.');
             }
+        }
+    }
+    
+    /**
+     * Checks if the class for a model table exists.
+     * @param string $ModelTableName
+     * @return bool 
+     */
+    public static function Exists($ModelTableName){
+        $ClassName = $ModelTableName . 'ModelTable';
+        if(class_exists($ClassName)){
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
 
     // -- INSTANCE --
-
-    protected $DataDefinition;
-    protected $ModelClassName;
+    /**
+     * Contains the field definition array.
+     * Filled in a child class.
+     * @var array 
+     */
+    protected $FieldDefinition;
+    /**
+     * Contains the real table name.
+     * Filled in a child class.
+     * @var string 
+     */
     protected $TableName;
+    /**
+     * Contains the name of the primary key.
+     * Whether filled in a chilled class or filled after running the method GetPrimaryKeyName().
+     * @var string 
+     */
     protected $PrimaryKeyName;
+    /**
+     * Contains the already loaded models.
+     * @var array 
+     */
     protected $Cache;
+    /**
+     * Contains the name of the ModelTable.
+     * @var type 
+     */
+    protected $ModelTableName;
+    
+    /**
+     * A instance of the field definition helper.
+     * @var FieldDefinitionHelper 
+     */
+    protected $FieldDefinitionHelper;
+    /**
+     * Contains the name of the Model that belongs to this ModelTable.
+     * Filled in a child class.
+     * @var string 
+     */
+    protected $ModelName;
+    /**
+     * Contains a value that indicates if all Models are loaded.
+     * @var bool 
+     */
+    protected $ChacheLoadedAll;
+    /**
+     * Contains the ModelArray of all Models if all are loaded.
+     * @var ModelArray
+     */
+    protected $ChacheModelArrayAll;
 
+    /**
+     * 
+     */
     public function __construct(){
         $this->Cache = array();
+        $this->LoadedAll = false;
     }
-
+    
+    /**
+     * Returns the PrimaryKey name.
+     * @return string 
+     */
     public function GetPrimaryKeyName(){
         if($this->PrimaryKeyName!=null){
             return $this->PrimaryKeyName;
         }
         else {
+            $Helper = $this->GetFieldDefinitionHelper();
             // try to find primary key
-            foreach($this->DataDefinition as $Key => $Value){
-                if($Value['Type']=='PrimaryKey'){
+            foreach($Helper->GetFieldList() as $FieldName){
+                if($Helper->IsTypePrimaryKey($FieldName)){
                     // primary key found
                     $this->PrimaryKeyName = $Key;
                     return $this->PrimaryKeyName;
@@ -52,42 +130,50 @@ class ModelTable {
         }
         throw new Exception('No primary key found.');
     }
-
-    public function GetByPrimaryKey($PrimaryKey){
-        if($PrimaryKey===0||$PrimaryKey===null||$PrimaryKey===''){
-            return null;
-        }
-        else{
-            // search in cache
-            $CacheInstance = $this->GetFromCacheByPrimaryKey($PrimaryKey);
-            if($CacheInstance!=null){
-                return $CacheInstance;
-            }
-            else {
-                // get via sql
-                $Parameters = array();
-                array_push($Parameters, $PrimaryKey);
-                $Conditions = SQLBuilder::CreateWhereStatementByPrimaryKey($this);
-                return $this->SelectSingle($Conditions, '', $Parameters);
-            }
-        }
-    }
-
+    
+    /**
+     * Returns the real table name.
+     * @return string 
+     */
     public function GetTableName(){
         return $this->TableName;
     }
     
-    public function GetModelClassName(){
-        return $this->ModelClassName;
-    }
-
-    public function GetFromCacheByPrimaryKey($PrimaryKey){
-        if(isset($this->Cache[$PrimaryKey])){
-            return $this->Cache[$PrimaryKey]['Instance'];
+    /**
+     * Returns the name of the Model that belongs to this ModelTable.
+     * @return type 
+     */
+    public function GetModelName(){
+        if(empty($this->ModelName)){
+            throw new Exception('ModelName not set up for '. get_class($this));
         }
-        return null;
+        return $this->ModelName;
     }
-
+    
+    /**
+     * Returns the name of the Model class that belongs to this ModelTable.
+     * @return string 
+     */
+    public function GetModelClassName(){
+        $ModelClassName = $this->GetModelName() .'Model';
+        return $ModelClassName;
+    }
+    
+    /**
+     * Returns the name of the ModelTable withouth the suffix ModelTable.
+     * @return string 
+     */
+    public function GetModelTableName(){
+        if($this->ModelTableName==null){
+            $this->ModelTableName = str_replace('ModelTable', '', get_class());
+        }
+        return $this->ModelTableName;
+    }
+    
+    /**
+     * Stores a instance of model into the cache.
+     * @param Model $Instance 
+     */
     public function StoreInCache(Model $Instance){
         if($Instance!=null){
             $PrimaryKey = $Instance->GetPrimaryKey();
@@ -101,22 +187,46 @@ class ModelTable {
         }
     }
 
-    public function GetDataDefinition(){
-        return $this->DataDefinition;
+    /**
+     * Returns a instance of a field definition helper or creates a new one.
+     * @return FieldDefinitionHelper 
+     */
+    public function GetFieldDefinitionHelper(){
+        // just use one instance
+        if($this->FieldDefinitionHelper==null){
+            $this->FieldDefinitionHelper = new FieldDefinitionHelper($this->FieldDefinition, $this);
+        }
+        return $this->FieldDefinitionHelper;
     }
 
-    public function SelectList($Conditions,  $OrderBy, $Parameters = array()){
-        $QueryString = SQLBuilder::CreateSelectStatement($this,$Conditions, $OrderBy);
-        return SQLManager::FillList($this, $QueryString, $Parameters);
+
+    /**
+     * Select a ModelArray from the database.
+     * @param Query $Query
+     * @return ModelArray 
+     */
+    public function Select(Query $Query){
+        $QueryString = SQLBuilder::CreateSelectStatement($this, $Query->GetConditions(), $Query->GetOrderBy());
+        $ModelArray = SQLManager::FillList($this, $QueryString, $Query->GetParameters());
+        // if the query don't have any conditions we have loaded all objects and can save the complete list 
+        // in chache
+        if($Query->GetConditions()==''){
+            $this->ChacheModelArrayAll = $ModelArray;
+            $this->ChacheLoadedAll = true;
+        }
+        return $ModelArray;
     }
     
-    public function SelectAll(){
-        return $this->SelectList('', '');
-    }
-
-    public function SelectSingle($Conditions, $OrderBy, $Parameters = array()){
-        $List = $this->SelectList($Conditions, $OrderBy, $Parameters);
-        if(count($List)>0){
+    
+    /**
+     * Select a single Model from the database.
+     * @param Query $Query
+     * @return Model 
+     */
+   public function SelectSingle(Query $Query){
+        $List = $this->Select($Query);
+        if($List->count()>0){
+            // return first element
             return $List[0];
         }
         else {
@@ -124,6 +234,23 @@ class ModelTable {
         }
     }
 
+    /**
+     * Select all Models from the database.
+     * @return ModelArray 
+     */
+    public function SelectAll(){
+       // creating a new query without any conditions
+       $Query = new Query($this->GetModelTableName());
+       return $this->Select($Query);
+    }
+    
+
+    /**
+     * Insert a Model to the database and updates the cache.
+     * Returns the primary key.
+     * @param Model $Object
+     * @return string 
+     */
     public function Insert(Model $Object){
         $PrimaryKey = $Object->GetPrimaryKey();
         If(empty($PrimaryKey)){
@@ -131,25 +258,28 @@ class ModelTable {
             $Insert = SQLBuilder::CreateInsertStatement($this, $Object);
             $PrimaryKey = SQLManager::InsertWithParameters($Insert['SQL'],$Insert['Parameters']);
             // update primarykey in object
-            $Object->UpdateObjectData($this->GetPrimaryKeyName(),$PrimaryKey);
+            $Object->SetFieldData($this->GetPrimaryKeyName(),$PrimaryKey);
 
             // update Foreign Objects that are in cache
-            $DataDefinition = $this->GetDataDefinition();
-            foreach($DataDefinition as $Key => $Defintion){
-                if($Defintion['Type']=='ForeignKey'){
-                    $ForeignKey = $Object->GetObjectData($Key);
+            $Helper = $this->GetFieldDefinitionHelper();
+            foreach($Helper->GetFieldList() as $FieldName){
+                if($Helper->IsTypeForeignKey($FieldName)){
+                    $ForeignKey = $Object->GetFieldData($FieldName);
                     if(isset($ForeignKey)&&$ForeignKey!=0){
-                        $ForeignModelTable = ModelTable::Get($Defintion['ModelTable']);
-
-                        // find data field from type ManyForeignObjects
-                        foreach($ForeignModelTable->GetDataDefinition() as $ForeignDefinitionKey => $ForeignDefinition){
-                            if($ForeignDefinition['Type']=='ManyForeignObjects'&&$ForeignDefinition['ForeignKey']==$Key){
-                                $ForeignObject = $ForeignModelTable->GetFromCacheByPrimaryKey($ForeignKey);
+                        
+                        $ForeignModelTable = $Helper->GetModelTable($FieldName);
+                        $ForeignHelper = $ForeignModelTable->GetFieldDefinitionHelper();
+                        // find data field from type ManyForeignObjects that have a reference to this model table
+                        foreach($ForeignHelper->GetManyForeignObjectsFieldList() as $ForeignFieldName){
+                            if($ForeignHelper->GetModelTableName($ForeignFieldName)==$this->GetModelTableName()
+                                    && $ForeignHelper->GetForeignKeyFieldName($ForeignFieldName)==$FieldName){
+                                
+                                $ForeignObject = $ForeignModelTable->LoadFromCacheByPrimaryKey($ForeignKey);
                                 if($ForeignObject!=null){
                                     // add primary key from inserted object to list
-                                    $Old = $ForeignObject->GetObjectData($ForeignDefinitionKey);
+                                    $Old = $ForeignObject->GetFieldData($ForeignDefinitionKey);
                                     $New = $Old . ',' . $PrimaryKey;
-                                    $ForeignObject->UpdateObjectData($ForeignDefinitionKey, $New);
+                                    $ForeignObject->SetFieldData($ForeignDefinitionKey, $New);
                                 }
                                 break;
                             }
@@ -165,20 +295,27 @@ class ModelTable {
         }
     }
 
+    /**
+     * Updates a Model on the database.
+     * @param Model $Object
+     * @return mixed 
+     */
     public function Update(Model $Object){
         $PrimaryKey = $Object->GetPrimaryKey();
         if(!empty($PrimaryKey)){
                 // create update statement
                 $Update = SQLBuilder::CreateUpdateStatement($this, $Object);
                 return SQLManager::UpdateWithParameters($Update['SQL'], $Update['Parameters']);
-
-
         }
         else {
             throw new Exception('Primary key isn\'t set, can\'t update');
         }
     }
 
+    /**
+     * Deletes a Model from the database and updates the cache.
+     * @param Model $Object 
+     */
     public function Delete(Model $Object){
         $PrimaryKey = $Object->GetPrimaryKey();
         if($PrimaryKey!=null){
@@ -188,19 +325,26 @@ class ModelTable {
             SQLManager::DeleteWithParameters($QueryString, $Parameters);
 
             // update foreign objects
-            foreach($this->GetDataDefinition() as $Field => $FieldDefinition){
-                if($FieldDefinition['Type']=='ForeignKey'){
-                    $ForeignModelTable = $this->GetFieldModelTable($Field);
-                    $ForeignKey = $Object->GetObjectData($Field);
-                    $ForeignObject = $ForeignModelTable->GetFromCacheByPrimaryKey($ForeignKey);
+            $Helper = $this->GetFieldDefinitionHelper();
+            
+            foreach($Helper->GetFieldList() as $FieldName){
+                if($Helper->IsTypeForeignKey($FieldName)){
+                    $ForeignModelTable =  $Helper->GetModelTable($FieldName);
+                    $ForeignKey = $Object->GetFieldData($FieldName);
+                    $ForeignObject = $ForeignModelTable->LoadFromCacheByPrimaryKey($ForeignKey);
                     // if object exist in cache and needs to be updated
                     if($ForeignObject!=null){
-                        foreach($ForeignModelTable->GetDataDefinition() as $ForeignDefinitionKey => $ForeignDefinition){
-                            if($ForeignDefinition['Type']=='ManyForeignObjects'&&$ForeignDefinition['ForeignKey']==$Field){
-                                $OldKeys = $ForeignObject->GetObjectData($ForeignDefinitionKey);
-                                // remove foreign key from key list
-                                $ForeignObject->UpdateObjectData($ForeignDefinitionKey, str_replace($ForeignKey, '', $OldKeys));
+                         // look through foreign model
+                        $ForeignHelper = $ForeignModelTable->GetFieldDefinitionHelper();
+                        foreach($ForeignHelper->GetManyForeignObjectsFieldList() as $ForeignModelTableFieldName){
+                            // searching for a ManyForeignObjects field with ForeignKey reference to this field
+                            if($ForeignHelper->GetModelTableName($ForeignModelTableFieldName) == $this->GetModelTableName()
+                                    && $ForeignHelper->GetForeignKeyFieldName($ForeignModelTableFieldName) == $FieldName){
+                                $OldKeys = $OldForeignObject->GetFieldData($ForeignModelTableFieldName);
+                                // delete from old keys
+                                $OldForeignObject->SetObjectData($ForeignModelTableFieldName, str_replace($PrimaryKey, '', $OldKeys));
                                 break;
+
                             }
                         }
                     }
@@ -211,53 +355,98 @@ class ModelTable {
             throw new Exception('Can\'t delete model cause it has no primary key.');
         }
     }
-    public function SelectByPrimaryKeys($PrimaryKeys){
+    
+    /**
+     * Select a ModelArray from database by primary keys.
+     * @param array $PrimaryKeys
+     * @return ModelArray 
+     */
+    public function SelectByPrimaryKeys(array $PrimaryKeys){
         $Values =  SQLBuilder::CreateWhereStatementByPrimaryKeys($this, $PrimaryKeys);
-        return $this->SelectList($Values['SQL'], '', $Values['Parameters']);
+        $Query = new Query($this->GetModelTableName());
+        $Query->SetConditions($Values['SQL']);
+        foreach($Values['Parameters'] as $Parameter){
+            $Query->AddParameter($Parameter);
+        }
+        return $this->Select($Query);
     }  
     
-    public function SelectListByForeignKeys($Field, $Keys){
-        $InStatementResult = SQLBuilder::CreateInStatementForKeys($this, $Field, $Keys);
-        $WhereStatement = "WHERE " . $InStatementResult['SQL'] . " ";
-        $Parameters = $InStatementResult['Parameters'];
-        return $this->SelectList($WhereStatement, '', $Parameters);
+    /**
+     * Select a ModelArray from database by foreign keys through a sql IN statement.
+     * Example: SELECT * FROM Books WHERE Books.AuthorID IN ('1', '2', '3')
+     * @param string $FieldName
+     * @param array $Keys
+     * @return ModelArray 
+     */
+    public function SelectByForeignKeys($FieldName,array $Keys){
+        $InStatementResult = SQLBuilder::CreateInStatementForKeys($this, $FieldName, $Keys);
+        $Query = new Query($this->GetModelTableName());
+        $Query->SetConditions("WHERE " . $InStatementResult['SQL'] . " ");
+        foreach($InStatementResult['Parameters'] as $Parameter){
+            $Query->AddParameter($Parameter);
+        }
+        return $this->Select($Query);
     }
     
-    public function GetFieldDefinition($Field){
-        $DataDefintion = $this->GetDataDefinition();
-        if(isset($DataDefintion[$Field])){
-            return $DataDefintion[$Field];
+    /**
+     * Select a Model from database by its primary key.
+     * @param string $PrimaryKey
+     * @return Model 
+     */
+    public function SelectByPrimaryKey($PrimaryKey){
+        $Conditions = SQLBuilder::CreateWhereStatementByPrimaryKey($this);
+        $Query = new Query($this->GetModelTableName());
+        $Query->SetConditions($Conditions);
+        $Query->AddParameter($PrimaryKey);
+        return $this->SelectSingle($Query);
+    }
+    
+    /**
+     * Loads a Model from cache by its primary key.
+     * @param string $PrimaryKey
+     * @return Model 
+     */
+    public function LoadFromCacheByPrimaryKey($PrimaryKey){
+        if(!is_string($PrimaryKey)&&!is_int($PrimaryKey)){
+            throw new Exception('primary key must be a string or int');
+        }
+        if(isset($this->Cache[$PrimaryKey])){
+            return $this->Cache[$PrimaryKey]['Instance'];
         }
         return null;
     }
     
-    public function GetFieldModelTableName($Field){
-        $FieldDefinition = $this->GetFieldDefinition($Field);
-        if($FieldDefinition!=null){
-            switch($FieldDefinition['Type']){
-                    case 'ManyForeignObjects':
-                        return $FieldDefinition['ModelTable'];
-                        break;
-                    case 'ForeignObject':
-                        $ForeignKeyFieldDefiniton = $this->GetFieldDefinition($FieldDefinition['ForeignKey']);
-                        if($ForeignKeyFieldDefiniton!=null){
-                            return $ForeignKeyFieldDefiniton['ModelTable'];
-                        }
-                        break;
+    /**
+     * Returns a Model from cache or from database by its primary key.
+     * @param string $PrimaryKey
+     * @return Model 
+     */
+    public function LoadByPrimaryKey($PrimaryKey){
+        if(!is_string($PrimaryKey)&&!is_int($PrimaryKey)){
+            throw new Exception('primary key must be a string or int');
+        }
+        if($PrimaryKey===0||$PrimaryKey===null||$PrimaryKey===''){
+            return null;
+        }
+        else{
+            // search in cache
+            $CacheInstance = $this->LoadFromCacheByPrimaryKey($PrimaryKey);
+            if($CacheInstance!=null){
+                return $CacheInstance;
+            }
+            else {
+                // get via select
+                return $this->SelectByPrimaryKey($PrimaryKey);
             }
         }
-        return null;
     }
     
-    public function GetFieldModelTable($Field){
-        $Name = $this->GetFieldModelTableName($Field);
-        if($Name!=null){
-            ModelTable::Get($Name);
-        }
-        return null;
-    }
-    
-    public function Load($Keys){
+    /**
+     * Returns a ModelArray from cache or database by the primary keys.
+     * @param array $Keys
+     * @return ModelArray 
+     */
+    public function LoadByPrimaryKeys(array $Keys){
         // convert to array
         $List = new ModelArray();
         $List->SetModelTable($this);
@@ -265,7 +454,7 @@ class ModelTable {
         foreach($Keys as $Key){
             if(!empty($Key)){
                 // search in cache
-                $Item = $this->GetFromCacheByPrimaryKey($Key);
+                $Item = $this->LoadFromCacheByPrimaryKey($Key);
                 // mark for loading later
                 if($Item==null){
                     array_push($LoadKeys, $Key);
@@ -284,7 +473,19 @@ class ModelTable {
         }
         return $List;
     }
-
+    
+    
+    /**
+     *  Returns all Models from cache or from database.
+     *  @return ModelArray
+     */
+    public function LoadAll(){
+        if(!$this->ChacheLoadedAll) {
+            $this->SelectAll();
+        }
+        return $this->ChacheModelArrayAll;
+    }
+    
 }
 
 ?>

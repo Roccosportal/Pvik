@@ -19,7 +19,7 @@
 <body>
 <div id="global">
 <div id="header">
-<h1>pvik HowTo</h1>
+<h1>Pvik HowTo</h1>
 </div>
 <div id="main">
 <div id="menu">
@@ -76,11 +76,12 @@
 <div id="content">
 <h2 id="general">General</h2>
 <p>
-    Pvik uses the MVC concept, that devides applications into model, view and controller.
-    You need to understand the concept before you working with Pvik. You find the differents
+    Pvik uses the MVC concept, that divides applications into model, view and controller.
+    You need to understand the concept before you working with Pvik. You find the different
     parts in the folder '/model/', '/views/' and '/controllers/'. Pvik use advanced urls which
-    are called routes. If a route gets called the route calls the assign action method from the
-    asigned controller. You find the configuration file 'config.php' in the folder '/configs/'.
+    are called routes. If a route gets called the route calls the assigned action method from the
+    assigned controller. You find the configuration file 'config.php' in the folder '/configs/'.
+    This documentation is for the Pvik version 2.1.0.
     
 </p>
 <h2 id="requirements">Requirements</h2>
@@ -195,7 +196,7 @@ $this-&gt;ViewData-&gt;Set(&#39;instance&#39; , $Instance);</pre>
     To read the data using following code in the view:
 </p>
 <pre class="brush: php">$this-&gt;ViewData-&gt;Get(&#39;id&#39;);</pre>
-<p class="info">Info: If you use a masterpage you have also access to the ViewData.</p>
+<p class="info">Info: If you use a master page you have also access to the ViewData.</p>
 <h2 id="model">Model</h2>
 <p>
     Using model classes is a simple way to access data on a mysql server and prevent SQL Statements. 
@@ -238,108 +239,144 @@ Books
 class AuthorsModelTable extends ModelTable {
     public function __construct(){
         // define the table name
-        $this-&gt;TableName = 'Authors';
+        $this-&gt;TableName = &#39;Authors&#39;;
         // define the class name for the model
-        // 'Model' is the standard suffix: 'AuthorModel'
-        $this-&gt;ModelClassName = 'Author';
+        // &#39;Model&#39; is the standard suffix: &#39;AuthorModel&#39;
+        $this-&gt;ModelName = &#39;Author&#39;;
         // define the primarykey
-        $this-&gt;PrimaryKeyName = 'AuthorID';
+        $this-&gt;PrimaryKeyName = &#39;AuthorID&#39;;
         // define a new attribute from type primary key
-        $this-&gt;DataDefinition['AuthorID'] = array ('Type' =&gt; 'PrimaryKey');
+        $this-&gt;FieldDefinition[&#39;AuthorID&#39;] = array (&#39;Type&#39; =&gt; &#39;PrimaryKey&#39;);
         // define a new attribute from type normal (text, number, anything)
-        $this-&gt;DataDefinition['Firstname'] =  array ('Type' =&gt; 'Normal');
+        $this-&gt;FieldDefinition[&#39;Firstname&#39;] =  array (&#39;Type&#39; =&gt; &#39;Normal&#39;);
         // define a new attribute from type normal (text, number, anything)
-        $this-&gt;DataDefinition['Lastname'] =  array ('Type' =&gt; 'Normal');
+        $this-&gt;FieldDefinition[&#39;Lastname&#39;] =  array (&#39;Type&#39; =&gt; &#39;Normal&#39;);
         // define a new attribute from type many foreign object
-        // this field contains an array from 'BookModel's that are associated with a author
-        $this-&gt;DataDefinition['Books'] = array ('Type' =&gt; 'ManyForeignObjects', 'ModelTable' =&gt; 'Books','ForeignKey' =&gt; 'AuthorID');
+        // this field contains an ModelArray from &#39;BookModel&#39;s that are associated with a author
+        $this-&gt;FieldDefinition[&#39;Books&#39;] = array (&#39;Type&#39; =&gt; &#39;ManyForeignObjects&#39;, &#39;ModelTable&#39; =&gt; &#39;Books&#39;,&#39;ForeignKey&#39; =&gt; &#39;AuthorID&#39;);
     }
 }
-
+// this phpdoc is usefull for code completion
+/**
+ * @property int $AuthorID
+ * @property string $Firstname
+ * @property string $Lastname
+ * @porperty ModelArray $Books
+ */
 class AuthorModel extends Model {
     public function __construct(){
         // define the class name for the model table
-        // 'ModelTable' is the standard suffix: 'AuthorsModelTable'
-        $this-&gt;ModelTableName = 'Authors';
+        // &#39;ModelTable&#39; is the standard suffix: &#39;AuthorsModelTable&#39;
+        $this-&gt;ModelTableName = &#39;Authors&#39;;
     }
 }
 ?&gt;</pre>
 <p>And the model file for the book (/model/book-model.php):</p>
 <pre class="brush: php">&lt;?php
+
 class BooksModelTable extends ModelTable {
-    public function __construct(){
+
+    public function __construct() {
         // define the table name
-        $this-&gt;TableName = 'Books';
+        $this-&gt;TableName = &#39;Books&#39;;
         // define the class name for the model
-        // 'Model' is the standard suffix: 'BookModel'
-        $this-&gt;ModelClassName = 'Book';
+        // &#39;Model&#39; is the standard suffix: &#39;BookModel&#39;
+        $this-&gt;ModelName = &#39;Book&#39;;
         // define the primarykey
-        $this-&gt;PrimaryKeyName = 'BookID';
+        $this-&gt;PrimaryKeyName = &#39;BookID&#39;;
         // define a new attribute from type primary key
-        $this-&gt;DataDefinition['BookID'] = array ('Type' =&gt; 'PrimaryKey');
+        $this-&gt;FieldDefinition[&#39;BookID&#39;] = array(&#39;Type&#39; =&gt; &#39;PrimaryKey&#39;);
         // define a new attribute from type normal (text, number, anything)
-        $this-&gt;DataDefinition['Title'] =  array ('Type' =&gt; 'Normal');
+        $this-&gt;FieldDefinition[&#39;Title&#39;] = array(&#39;Type&#39; =&gt; &#39;Normal&#39;);
         // define a new attribute from type foreign key
         // this field contains the real id
-        $this-&gt;DataDefinition['AuthorID'] = array ('Type' =&gt; 'ForeignKey', 'ModelTable' =&gt; 'Authors');
+        $this-&gt;FieldDefinition[&#39;AuthorID&#39;] = array(&#39;Type&#39; =&gt; &#39;ForeignKey&#39;, &#39;ModelTable&#39; =&gt; &#39;Authors&#39;);
         // define a new attribute from type foreign object
-        // this field contains a object from type 'AuthorModel'
-        $this-&gt;DataDefinition['Author'] = array ('Type' =&gt; 'ForeignObject', 'ForeignKey' =&gt; 'AuthorID');
+        // this field contains a object from type &#39;AuthorModel&#39;
+        $this-&gt;FieldDefinition[&#39;Author&#39;] = array(&#39;Type&#39; =&gt; &#39;ForeignObject&#39;, &#39;ForeignKey&#39; =&gt; &#39;AuthorID&#39;);
     }
+
 }
 
+// this phpdoc is usefull for code completion
+/**
+ * @property int $BookID
+ * @property string $Title
+ * @property int $AuthorID
+ * @property AuthorModel $Author
+ */
 class BookModel extends Model {
-    public function __construct(){
+
+    public function __construct() {
         // define the class name for the model table
-        // 'ModelTable' is the standard suffix: 'BooksModelTable'
-        $this-&gt;ModelTableName = 'Books';
+        // &#39;ModelTable&#39; is the standard suffix: &#39;BooksModelTable&#39;
+        $this-&gt;ModelTableName = &#39;Books&#39;;
     }
+
 }
+
 ?&gt;</pre>
 <p class="info" >
     Info: If the primary key is a guid you can set it in the data definition ('IsGuid' =&gt; true).
 </p>
 <h3 id="model-3">Use model in controller</h3>
-<p>A action in the controller to select data could look like this:</p>
+<p>An action in the controller to select data could look like this:</p>
 <pre class="brush: php">public function Index(){
-    // select one author by id
-    $Author = ModelTable::Get('Author')-&gt;Load('1');
-
-    // select all authors
-    $Authors = ModelTable::Get('Author')-&gt;SelectList('', '');
-    // select all books
-    $Books = ModelTable::Get('Book')-&gt;SelectList('', '');
-
-    // select authors with firstname 'Peter'
-    $AuthorsWithFirstnamePeter = ModelTable::Get('Author')-&gt;SelectList('WHERE Author.Firstname = "%s"', '', array ('Peter'));
-
+    // load one author by id
+    $Author = ModelTable::Get(&#39;Authors&#39;)-&gt;LoadByPrimaryKey(&#39;1&#39;);
+ 
+    // load all authors
+    $Authors = ModelTable::Get(&#39;Authors&#39;)-&gt;LoadAll();
+    // load all books
+    $Books = ModelTable::Get(&#39;Books&#39;)-&gt;LoadAll();
+ 
+    // select authors with firstname &#39;Peter&#39;
+    $Query = new Query(&#39;Authors&#39;);
+    $Query-&gt;SetConditions(&#39;WHERE Author.Firstname = &quot;%s&quot;&#39;);
+    $Query-&gt;AddParameter(&#39;Peter&#39;);
+    $AuthorsWithFirstnamePeter = $Query-&gt;Select();
+    // The code above always runs a select statement on the database which 
+    // actually is not neccessary because we already loaded all authors.
+    // This checks just the already loaded authors without a database query
+    $AuthorsWithFirstnamePeter = $Authors-&gt;FilterEquals(&#39;Firstname&#39;, &#39;Peter&#39;);
+    
+   
     // select a single author
-    $AuthorHansMeier = ModelTable::Get('Author')-&gt;SelectSingle('WHERE Author.Firstname = "%s" AND Author.Lastname = "%s"', '', array ('Hans', 'Meier'));
-
-    // select author order by Firstname
-    $AuthorsOrderBy = ModelTable::Get('Author')-&gt;SelectList('', 'ORDER BY Author.Firstname ASC');
-
+    $Query = new Query(&#39;Authors&#39;);
+    $Query-&gt;SetConditions(&#39;WHERE Author.Firstname = &quot;%s&quot; AND Author.Lastname = &quot;%s&quot;&#39;);
+    $Query-&gt;AddParameter(&#39;Hans&#39;);
+    $Query-&gt;AddParameter(&#39;Meier&#39;);
+    $AuthorHansMeier = $Query-&gt;SelectSingle();
+    // or
+    $AuthorHansMeier = $Authors-&gt;FilterEquals(&#39;Firstname&#39;, &#39;Peter&#39;)-&gt;FilterEquals(&#39;Lastname&#39;, &#39;Meier&#39;)-&gt;GetFirst();
+   
+    // Notice:
+    // Select functions always run a statement on the database
+    // Load functions check the cache first and only if neccessary run a statement on the database
+    
+    
     // pass list to view
-    $this-&gt;ViewData-&gt;Set('Authors', $Authors);
-    $this-&gt;ViewData-&gt;Set('Books', $Books);
+    $this-&gt;ViewData-&gt;Set(&#39;Authors&#39;, $Authors);
+    $this-&gt;ViewData-&gt;Set(&#39;Books&#39;, $Books);
     // execute view
     $this-&gt;ExecuteView();
 }</pre>
 <p class="info" >
-    Info: Never write parameters in the condition to prevent sql injections. Use the parameters array instead.
-    'SelectList('WHERE Author.Firstname = "%s"', '', array ('Peter'))' instead of 'SelectList('WHERE Author.Firstname = "Peter"', '')'<br /><br />
+    Info: Never write parameters in the condition to prevent sql injections. Use the AddParameters function instead.<br /><br />
     Info: Write the table name in front of a field in a condition to prevent errors.
 </p>
 <h3 id="model-4">Use model in view</h3>
 <p>A part of the view could look like this:</p>
 <pre class="brush: php">&lt;?php
 // get list from controller
-$Authors = $this-&gt;ViewData-&gt;Get('Authors');
+$Authors = $this-&gt;ViewData-&gt;Get(&#39;Authors&#39;);
+/* @var $Authors ModelArray */ // helpful for code completion
 ?&gt;
 &lt;table&gt;
     &lt;tr&gt;&lt;th&gt;Firstname&lt;/th&gt;&lt;th&gt;Lastname&lt;/th&gt;&lt;th&gt;First Book&lt;/th&gt;&lt;/tr&gt;
     &lt;?php
     foreach($Authors as $Author){
+        /* @var $Author AuthorModel */ // helpful for code completion
     ?&gt;
     &lt;tr&gt;
         &lt;td&gt;&lt;?php echo $Author-&gt;Firstname; ?&gt;&lt;/td&gt;
@@ -359,12 +396,14 @@ $Authors = $this-&gt;ViewData-&gt;Get('Authors');
 <p>Or like this:</p>
 <pre class="brush: php">&lt;?php
 // get list from controller
-$Books = $this-&gt;ViewData-&gt;Get('Books');
+$Books = $this-&gt;ViewData-&gt;Get(&#39;Books&#39;);
+/* @var $Books ModelArray */ // helpful for code completion
 ?&gt;
 &lt;table&gt;
     &lt;tr&gt;&lt;th&gt;Title&lt;/th&gt;&lt;th&gt;Author&lt;/th&gt;&lt;/tr&gt;
     &lt;?php
     foreach($Books as $Book){
+        /* @var $Book BookModel */ // helpful for code completion
     ?&gt;
     &lt;tr&gt;
         &lt;td&gt;&lt;?php echo $Book-&gt;Title; ?&gt;&lt;/td&gt;
@@ -396,13 +435,13 @@ $Books = $this-&gt;ViewData-&gt;Get('Books');
 <p>A update action in a controller could look like this</p>
 <pre class="brush: php">public function Update(){
     // get author instance
-    $Author = ModelTable::Get('Author')-&gt;GetByPrimaryKey('1');
+    $Author = ModelTable::Get('Author')-&gt;LoadByPrimaryKey('1');
     $Author-&gt;Firstname = 'William';
     // update
     $Author-&gt;Update();
 
     // change author from book
-    $Book = ModelTable::Get('Book')-&gt;GetByPrimaryKey('1');
+    $Book = ModelTable::Get('Book')-&gt;LoadByPrimaryKey('1');
     $Book-&gt;AuthorID =  '2'; // the $Book->Author object automatically gets changed
      // update 
     $Book-&gt;Update();
@@ -411,9 +450,10 @@ $Books = $this-&gt;ViewData-&gt;Get('Books');
 <p>A delete action in a controller could look like this</p>
 <pre class="brush: php">public function Delete(){
     // get author instance
-    $Author = ModelTable::Get('Delete')-&gt;GetByPrimaryKey('1');
+    $Author = ModelTable::Get(&#39;Delete&#39;)-&gt;LoadByPrimaryKey(&#39;1&#39;);
     // delete all books from author
     foreach($Author-&gt;Books as $Book){
+        /* @var $Book BookModel */ // helpful for code completion
         // delete the book
         $Book-&gt;Delete();
     }
@@ -467,31 +507,42 @@ $FilteredList = $List-&gt;FilterNotIn('Name', array ('Klaus', 'Karl'));
 // this filter selects every item with none id or 1 or 2 as a id
 $FilteredList = $List-&gt;FilterEquals('ID', null)->Merge($List-&gt;FilterIn('ID', array ('1', '2')));
 </pre>
-<h3 id="model-array-3">Perfomance</h3>
+<h3 id="model-array-3">Performance</h3>
 <p>
     Pvik supports lazy loading but sometimes you want to load all data just in one query.
-    Imagine we have a list of 500 books and for every book we want to display the authors name. For every book a single request to the database would be submited.
-    If the data are loaded once Pvik keeps them in the cache. So we just can call the 'Load' Method.
+    Imagine we have a list of 500 books and for every book we want to display the authors name. For every book a single request to the database would be executed.
+    If the data are loaded once Pvik keeps them in the cache. So we just can call the 'LoadList' Method.
+    That reduces the sql statements and increases the performance
 </p>
-<pre class="brush: php">
-$Books-&gt;Load('Author'); // without this statement Pvik would make for every book a single request
+<pre class="brush: php">// in this example we did not load
+// authors from the database
+// Pvik would execute a select statement for
+// every time we access a new author that is not
+// loaded in the cache yet
+
+// this function loads all authors from the book list
+// into the cache
+$Books-&gt;LoadList(&#39;Author&#39;); // we can ignore the Author list that this function returns
 foreach($Books as $Book){
+    /* @var $Book BookModel */ // helpful for code completion
     echo $Book-&gt;Author-&gt;Name;
 }
-
+ 
 // you also can load other data
-$Books-&gt;Load('Author-&gt;Publisher-&gt;Country')
+$Books-&gt;LoadList(&#39;Author-&gt;Publisher-&gt;Country&#39;)
 foreach($Books as $Book){
+    /* @var $Book BookModel */ // helpful for code completion
     echo $Book-&gt;Author-&gt;Publisher-&gt;Country-&gt;Name;
 }
-// even if it is a 'ManyForeignObject'
-$Books-&gt;Load('Buyers-&gt;Country')
+// even if it is a &#39;ManyForeignObject&#39;
+$Books-&gt;LoadList(&#39;Buyers-&gt;Country&#39;)
 foreach($Books as $Book){
+    /* @var $Book BookModel */ // helpful for code completion
     foreach($Book-&gt;Buyers as $Buyer){
+        /* @var $Buyer BuyerModel */ // helpful for code completion
         echo $Buyer-&gt;Country-&gt;Name;
     }
-}
-</pre>
+}</pre>
 <h2 id="redirecting">Redirecting</h2>
 <p>There are two ways for redirecting. Redirecting to a path or redirecting to a controller. If you redirect to a path the browser will redirect to the given page. The other redirect is a server inside redirect and the url in the browser stays the same.</p>
 <pre class="brush: php">public function Redirect(){

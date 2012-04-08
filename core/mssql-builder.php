@@ -1,293 +1,163 @@
 <?php
-
-
+/**
+ * Builds sql statements according to mssql sql.
+ * Uses functions of the mysql builder because statements are similar.
+ */
 class MSSQLBuilder {
-    
-    public static function CreateWhereStatementByPrimaryKey(ModelTable $ModelTable){
-        return "WHERE " . $ModelTable->GetTableName()  . "." . $ModelTable->GetPrimaryKeyName() . " = '%s'";
+
+    /**
+     * Creates a where statement by a primary key.
+     * Example:
+     * WHERE Author.AuthorID = '%s'
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    public static function CreateWhereStatementByPrimaryKey(ModelTable $ModelTable) {
+        $Result = MySQLBuilder::CreateWhereStatementByPrimaryKey($ModelTable);
+        // convert " to '
+        $Result = str_replace('"', "'", $Result);
+        return $Result;
     }
-    
-    public static function CreateSelectStatement(ModelTable $ModelTable, $Conditions,$OrderBy){
+
+    /**
+     * Creates a select statement.
+     * @param ModelTable $ModelTable
+     * @param string $Conditions
+     * @param string $OrderBy
+     * @return string 
+     */
+    public static function CreateSelectStatement(ModelTable $ModelTable, $Conditions, $OrderBy) {
         $SQL = "";
         $SQL .= self::CreateSelectPart($ModelTable);
         $SQL .= " ";
         $SQL .= $Conditions;
         $SQL .= " ";
-        //$SQL .= self::CreateGroupByStatement($ModelTable);
         $SQL .= " ";
         $SQL .= $OrderBy;
         return $SQL;
     }
 
-    protected static function CreateSelectPart(ModelTable $ModelTable){
+    /**
+     * Creates the select header.
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    protected static function CreateSelectPart(ModelTable $ModelTable) {
         $SQL = "SELECT ";
         $Count = 1;
-        foreach ($ModelTable->GetDataDefinition() as $Key => $Definition) {
-            switch ($Definition["Type"]) {
+        $Helper = $ModelTable->GetFieldDefinitionHelper();
+        foreach ($Helper->GetFieldList() as $FieldName) {
+            switch ($Helper->GetFieldType($FieldName)) {
                 case "Normal":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    $SQL .= self::SQLAttribute($ModelTable,$Key);
-                    $Count++;
-                    break;
                 case "PrimaryKey":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    $SQL .= self::SQLAttribute($ModelTable,$Key);
-                    $Count++;
-                    break;
                 case "ForeignKey":
-                    if($Count>1){
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ", ";
                     }
-                    $SQL .=  self::SQLAttribute($ModelTable,$Key);
+                    $SQL .= self::SQLAttribute($ModelTable, $FieldName);
                     $Count++;
                     break;
                 case "ManyForeignObjects":
-                    if($Count>1){
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ", ";
                     }
- 
-                    // get definition for the foreign table
-                    $ForeignModelTable =  ModelTable::Get($Definition["ModelTable"]);
+                    $ForeignModelTable = $Helper->GetModelTable($FieldName);
                     // generate group_conact
-                    $SQL .= " " . $Key . " = replace ((SELECT ". self::SQLAttribute($ForeignModelTable,$ForeignModelTable->GetPrimaryKeyName(), "[data()]" ) .
-                              " FROM ". $ForeignModelTable->GetTableName().
-                              " WHERE  ". $ForeignModelTable->GetTableName()."." .$Definition["ForeignKey"] ." = ". $ModelTable->GetTableName().".". $ModelTable->GetPrimaryKeyName() .
-                              " FOR xml path('')), ' ', ',') ";
-                    
-                    
+                    $SQL .= " " . $FieldName . " = replace ((SELECT " . self::SQLAttribute($ForeignModelTable, $ForeignModelTable->GetPrimaryKeyName(), "[data()]") .
+                            " FROM " . $ForeignModelTable->GetTableName() .
+                            " WHERE  " . $ForeignModelTable->GetTableName() . "." . $Helper->GetForeignKeyFieldName($FieldName) . " = " . $ModelTable->GetTableName() . "." . $ModelTable->GetPrimaryKeyName() .
+                            " FOR xml path('')), ' ', ',') ";
+
                     $Count++;
                     break;
             }
-            
         }
-        $SQL .=  " FROM " . $ModelTable->GetTableName() ;
-     
-        return $SQL;
-    }
-    
-    protected static function SQLAttribute(ModelTable $ModelTable,$Attribute, $Alias = "", $Table = ""){
-        if($Table==""){
-            $Table = $ModelTable->GetTableName();
-        }
-        $SQL = $Table . ".". $Attribute;
-        if($Alias!=""){
-            $SQL .= " as ". $Alias;
-        }
-        return $SQL;
-    }
-    
-    protected static function CreateGroupByStatement(ModelTable $ModelTable){
-        $Count = 1;
-        $SQL = "";
-        foreach ($ModelTable->GetDataDefinition() as $Key => $Definition) {
-             if ($Definition["Type"]=="ManyForeignObjects") {
-                if($Count>1){
-                     // add , at the end
-                    $SQL .= ", ";
-                }
-                $SQL .=  self::SQLAttribute($ModelTable,$ModelTable->GetPrimaryKeyName());
-                $Count++;
-             }
-        }
-        // if we have a group by part
-        if($Count>1){
-            $SQL = "GROUP BY ". $SQL;
-        }
+        $SQL .= " FROM " . $ModelTable->GetTableName();
+
         return $SQL;
     }
 
-   public static function CreateInsertStatement(ModelTable $ModelTable, Model $Object){
-        $SQL = "INSERT INTO " . $ModelTable->GetTableName();
-        $DataDefinition = $ModelTable->GetDataDefinition();
-        // create column list
-        $SQL .= " (";
-        $Count = 1;
-        foreach($DataDefinition as $Key => $Definition){
-            switch($Definition["Type"]){
-                case "Normal":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    $SQL .= $Key;
-                    $Count++;
-                    break;
-               case "ForeignKey":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    $SQL .= $Key;
-                    $Count++;
-                    break;
-               case "PrimaryKey":
-                   // only insert a value if it is a guid otherwise ignore
-                   // the primarykey will be set on the database
-                   if(isset($Definition["IsGuid"])&&$Definition["IsGuid"]==true){
-                        if($Count>1){
-                            // add , at the end
-                            $SQL .= ", ";
-                        }
-                        $SQL .= $Key;
-                        $Count++;
-                   }
-                   break;
-            }
-        }
-        $SQL .= ")";
-        // create column values
-        $SQL .= " VALUES (";
-        $Count = 1;
-        $Parameters = array();
-        foreach($DataDefinition as $Key => $Definition){
-            switch($Definition["Type"]){
-                case "Normal":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    if(is_bool($Object->$Key)){
-                        if($Object->$Key==true)
-                            $SQL .= "TRUE";
-                        else
-                             $SQL .= "FALSE";
-                    }
-                    elseif($Object->$Key!==null){
-                        //$SQL .= """. $Object->$Key . """;
-                        $SQL .= "'%s'";
-                        array_push($Parameters, $Object->$Key);
-                    }
-                    else {
-                        $SQL .= "NULL";
-                    }
-                    $Count++;
-                    break;
-               case "ForeignKey":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    if(is_bool($Object->$Key)){
-                        if($Object->$Key==true)
-                            $SQL .= "TRUE";
-                        else
-                             $SQL .= "FALSE";
-                    }
-                    elseif($Object->$Key!==null){
-                        $SQL .= "'%s'";
-                        array_push($Parameters, $Object->$Key);
-                    }
-                    else {
-                        $SQL .= "NULL";
-                    }
-                    $Count++;
-                    break;
-              case "PrimaryKey":
-                   // only insert a value if it is a guid otherwise ignore
-                   // the primarykey will be set on the database
-                   if(isset($Definition["IsGuid"])&&$Definition["IsGuid"]==true){
-                        if($Count>1){
-                            // add , at the end
-                            $SQL .= ", ";
-                        }
-                        $SQL .= "'%s'";
-                        array_push($Parameters, Core::CreateGuid());
-                        $Count++;
-                   }
-                   break;
-            }
-        }
-        $SQL .= ")";
-        return array ("SQL" => $SQL, "Parameters" => $Parameters);
+    /**
+     * Creates a sql attribute part.
+     * Example:
+     * Authors.AuthorID
+     * or
+     * Authors.AuthorID as ID
+     * @param ModelTable $ModelTable
+     * @param string $Attribute
+     * @param string $Alias
+     * @param string $Table
+     * @return string 
+     */
+    protected static function SQLAttribute(ModelTable $ModelTable, $Attribute, $Alias = "", $Table = "") {
+        return MySQLBuilder::SQLAttribute($ModelTable, $Attribute, $Alias, $Table);
     }
-    
-    public static function CreateUpdateStatement(ModelTable $ModelTable, Model $Object){
-        $SQL = "UPDATE ". $ModelTable->GetTableName() . " SET ";
-        $Count = 1;
-        $Parameters = array();
-        foreach($ModelTable->GetDataDefinition() as $Key => $Definition){
-            switch($Definition["Type"]){
-                case "Normal":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    $Data =  $Object->GetObjectData($Key);
-                    if(is_bool($Data)){
-                        if($Data==true)
-                            $SQL .= $Key . "= TRUE";
-                        else
-                             $SQL .= $Key . "= FALSE";
-                    }
-                    elseif($Data!==null){
-                        //$SQL .= $Key ." = "" . $Data. """;
-                        $SQL .= $Key ." = '%s'";
-                        array_push($Parameters, $Data);
-                    }
-                    else {
-                        $SQL .= $Key ." = NULL";
-                    }
-                    $Count++;
-                    break;
-                case "ForeignKey":
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ", ";
-                    }
-                    $Data =  $Object->GetObjectData($Key);
-                    if(is_bool($Data)){
-                        if($Data==true)
-                            $SQL .= $Key . "= TRUE";
-                        else
-                             $SQL .= $Key . "= FALSE";
-                    }
-                    elseif($Data!==null){
-                        $SQL .= $Key ." = '" . $Data. "'";
-                    }
-                    else {
-                        $SQL .= $Key ." = NULL";
-                    }
-                    $Count++;
-                    break;
-            }
-        }
-        //$SQL .= " WHERE ". $ModelTable->GetPrimaryKeyName() . " = "%s"";
-        $SQL .= " ". self::CreateWhereStatementByPrimaryKey($ModelTable);
-        array_push($Parameters, $Object->GetObjectData($ModelTable->GetPrimaryKeyName()));
-        return array ("SQL" => $SQL, "Parameters" => $Parameters);
-    }
-   
-    public static function CreateWhereStatementByPrimaryKeys(ModelTable $ModelTable, $Keys){
-        $Result = self::CreateInStatementForKeys($ModelTable, $ModelTable->GetPrimaryKeyName(), $Keys);
-        $Result['SQL'] = "WHERE " . $Result['SQL'];
+
+    /**
+     * Creates a insert statement.
+     * @param ModelTable $ModelTable
+     * @param Model $Object
+     * @return array $Result['SQL'], $Result['Parameters']
+     */
+    public static function CreateInsertStatement(ModelTable $ModelTable, Model $Object) {
+        $Result = MySQLBuilder::CreateInsertStatement($ModelTable, $Object);
+        // convert " to '
+        $Result['SQL'] = str_replace('"', "'", $Result['SQL']);
         return $Result;
     }
-    
-    public static function CreateInStatementForKeys(ModelTable $ModelTable, $Field, $Keys){
-        $SQL =  $ModelTable->GetTableName()  . "." . $Field . " IN ( ";
-        $Count = 0;
-        $Parameters = array();
-        foreach($Keys as $Key){
-            if($Count!=0){
-                $SQL .=  ",";
-            }
-            $SQL .=  "'%s'";
-            array_push($Parameters, $Key);
-            $Count++;
-        }
-        $SQL .= ')';
-        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
+
+    /**
+     * Creates an update statement.
+     * @param ModelTable $ModelTable
+     * @param Model $Object
+     * @return array $Result['SQL'], $Result['Parameters']
+     */
+    public static function CreateUpdateStatement(ModelTable $ModelTable, Model $Object) {
+        $Result = MySQLBuilder::CreateUpdateStatement($ModelTable, $Object);
+        // convert " to '
+        $Result['SQL'] = str_replace('"', "'", $Result['SQL']);
+        return $Result;
     }
 
-   
+    /**
+     * Creates a delete statement.
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    public static function CreateDeleteStatement(ModelTable $ModelTable) {
+        $Result = MySQLBuilder::CreateDeleteStatement($ModelTable);
+        // convert " to '
+        $Result = str_replace('"', "'", $Result);
+        return $Result;
+    }
+
+    /**
+     * Creates a where statement according to primary keys.
+     * 
+     * @param ModelTable $ModelTable
+     * @param array $Keys
+     * @return array $Result['SQL'], $Result['Parameters'] 
+     */
+    public static function CreateWhereStatementByPrimaryKeys(ModelTable $ModelTable,array $Keys) {
+        return MySQLBuilder::CreateWhereStatementByPrimaryKeys($ModelTable, $Keys);
+    }
+
+    /**
+     * Create a in statement for keys
+     * @param ModelTable $ModelTable
+     * @param string $Field
+     * @param array $Keys
+     * @return array $Result['SQL'], $Result['Parameters']
+     */
+    public static function CreateInStatementForKeys(ModelTable $ModelTable, $Field,array $Keys) {
+        $Result = MySQLBuilder::CreateInStatementForKeys($ModelTable, $Field, $Keys);
+        // convert " to '
+        $Result['SQL'] = str_replace('"', "'", $Result['SQL']);
+        return $Result;
+    }
+
 }
 
 ?>

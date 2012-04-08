@@ -5,15 +5,41 @@ function exception_error_handler($errno, $errstr, $errfile, $errline ) {
 }
 set_error_handler("exception_error_handler");
 Class Core {
-
+    /**
+     * Contains the current url.
+     * @var type 
+     */
     public static $Url = null;
-    public static $UrlParameters = null; // used as KeyValueArray
+    /**
+     * Contains the parameters that are passed via the url.
+     * @var KeyValueArray 
+     */
+    public static $UrlParameters = null;
+    /**
+     * Contains the config in an associative array loaded from default-config.php and config.php.
+     * @var array 
+     */
     public static $Config = null;
+    /**
+     * Contains the relative file base.
+     * Example: /sub-folder/
+     * @var type 
+     */
     protected static $RelativeFileBase;
+    /**
+     * Contains the absoulte file base.
+     * Example: /var/www/sub-folder/
+     * @var type
+     */
     protected static $AbsoluteFileBase;
-
+    /**
+     * Contains the names of already included files.
+     * @var ArrayObject 
+     */
+    protected static $IncludedFiles;
     public function __construct() {
         try {
+            self::$IncludedFiles = new ArrayObject();
             date_default_timezone_set('UTC');
             $RelativeFileBase = str_replace('index.php', '', $_SERVER['SCRIPT_NAME']) ;
 
@@ -22,11 +48,9 @@ Class Core {
 
             // load the config
             $this->LoadConfig();
-           
-
+          
             Log::WriteLine('Relative file base: ' . self::$RelativeFileBase);
             Log::WriteLine('Absolute file base: ' . self::$AbsoluteFileBase);
-
             if(self::$Config['UnderConstruction']['Enabled']==true){
                 $this->ExecuteUnderConstruction(Core::RealPath(self::$Config['UnderConstruction']['Path']));
             }
@@ -59,8 +83,11 @@ Class Core {
             $this->ErrorPage($Exception);
         }
     }
-
-    protected function ErrorPage($Exception){
+    /**
+     * Tries to show an error page for an exception.
+     * @param Exception $Exception 
+     */
+    protected function ErrorPage(Exception $Exception){
         try {
             $ExceptionClass = get_class($Exception);
             $ErrorPages = self::$Config['ErrorPages'];
@@ -88,17 +115,30 @@ Class Core {
             echo $ex->getMessage();
         }
     }
-
-    protected function ExecuteErrorPage($Exception, $File){
+    
+    /**
+     * Executes the error page file.
+     * @param Exception $Exception
+     * @param type $File 
+     */
+    protected function ExecuteErrorPage(Exception $Exception, $File){
         require($File);
     }
 
+    /**
+     * Executes the under construction file.
+     * @param Exception $Exception
+     * @param type $File 
+     */
     protected function ExecuteUnderConstruction($File){
         require($File);
     }
 
-
-     protected function GetRoute() {
+    /**
+     * Returns the route for the current url.
+     * @return array. 
+     */
+    protected function GetRoute() {
         $RouteMatch = null;
          // get the file base
         $RequestUri = $_SERVER['REQUEST_URI'];
@@ -145,7 +185,12 @@ Class Core {
         }
         return $RouteMatch;
     }
-
+    /**
+     * Checks if a url matches with an route. 
+     * @param string $OrignalUrl
+     * @param array $Route
+     * @return bool
+     */
     protected function UrlIsMatching($OrignalUrl, $Route){
         $RouteUrl = $Route['Url'];
         $IsMatching = false;
@@ -195,7 +240,10 @@ Class Core {
         }
         return false;
     }
-
+    
+    /**
+     * Loads first first the default config and then the config.
+     */
     protected function LoadConfig() {
         self::$Config = array();
 
@@ -208,61 +256,102 @@ Class Core {
     }
 
 
-
+    /**
+     * Includes the folders set up in the config.
+     */
     protected function IncludeFolders() {
         foreach (self::$Config['IncludeFolders'] as $FolderPath) {
             $RealFolderPath = Core::RealPath($FolderPath);
             $this->IncludeFolder($RealFolderPath, 0);
         }
     }
-
+    /**
+     * Includes a folder.
+     * @param string $RealFolderPath 
+     */
     public function IncludeFolder($RealFolderPath) {
         
         if ($Handle = opendir($RealFolderPath)) {
             while (false !== ($File = readdir($Handle))) {
                 $Extension = '';
-                $Path = $RealFolderPath . '/' . $File;
+                $Path = $RealFolderPath . $File;
                 If (strlen($File) > 4) {
                     // get extension from file
                     $Extension = substr($File, -4);
                 }
                 if ($Extension == '.php') {
-                    Log::WriteLine('Including: ' . $Path . ' (if not already is included)');
-
-                    include_once($Path);
+                    if(!in_array($Path,(array)self::$IncludedFiles)){
+                        include_once($Path);
+                        Log::WriteLine('Included: ' . $Path );
+                        self::$IncludedFiles->append($Path);
+                    }
                    
                 } elseif ($File != '.' && $File != '..' && is_dir($Path)) {
                     // it's a sub folder
-                    $this->IncludeFolder($Path);
+                    $this->IncludeFolder($Path . '/');
                 }
             }
             closedir($Handle);
         }
     }
+    
+    /**
+     * Includes a file on that the the caller file depends if not already included.
+     * If ClassB extends ClassA it depends on ClassA and so the file of ClassA must be included first.
+     * @param type $FilePath 
+     */
     public static function Depends($FilePath){
         $FilePath = self::RealPath($FilePath);
-        Log::WriteLine('Including: ' . $FilePath . ' (if not already is included)');
-        include_once($FilePath);
+        if(!in_array($FilePath,(array)self::$IncludedFiles)){
+           
+            include_once($FilePath);
+            Log::WriteLine('Included: ' . $FilePath);
+            self::$IncludedFiles->append($FilePath);            
+        }
     }
-
+    
+    /**
+     * Returns an absolute path.
+     * Resolves the ~/ symbol.
+     * Example /var/www/sub-folder/something.php
+     * @param string $Path
+     * @return string 
+     */
     public static function RealPath($Path) {
         $NewFilePath = str_replace('~/', self::$AbsoluteFileBase, $Path);
         return $NewFilePath;
     }
-
+    
+    /**
+     * Returns a relative path.
+     * Resolves the ~/ symbol.
+     * Example /sub-folder/something.js
+     * @param strubg $Path
+     * @return type
+     */
     public static function RelativePath($Path) {
         $NewPath = str_replace('~/', self::$RelativeFileBase, $Path);
         return $NewPath;
     }
-
+    
+    /**
+     * Returns a $_POST value or null.
+     * @param string $Key
+     * @return string 
+     */
     public static function GetPOST($Key){
         $Data = null;
-        if(isset($_POST[$Key])){
+        if(self::IsPOST($Key)){
             $Data = $_POST[$Key];
         }
         return $Data;
     }
-
+    
+    /**
+     * Checks if a $_POST value is set.
+     * @param string $Key
+     * @return string 
+     */
     public static function IsPOST($Key){
         if(isset($_POST[$Key])){
             return true;
@@ -271,7 +360,12 @@ Class Core {
             return false;
         }
     }
-
+    
+    /**
+     * Returns a $_GET value or null.
+     * @param string $Key
+     * @return string 
+     */
     public static function GetGET($Key){
         $Data = null;
         if(isset($_GET[$Key])){
@@ -280,6 +374,10 @@ Class Core {
         return $Data;
     }
     
+    /**
+     * Creates an guid.
+     * @return string 
+     */
     public static function CreateGuid(){
         if (function_exists('com_create_guid')){
             return com_create_guid();
@@ -298,20 +396,56 @@ Class Core {
         }
     }
     
+    /**
+     * Converts a name to a safe path name. Converts ThisIsAnExample to this-is-an-example.
+     * @param string $Name
+     * @return string 
+     */
     public static function ConvertNameToPath($Name){
         $ProcessingName = preg_replace("/([a-z])([A-Z][A-Za-z0-9])/", '${1}-${2}', $Name);
         return strtolower($ProcessingName);
     }
+    /**
+     * Is set to true if a sessions was started.
+     * @var type 
+     */
+    protected static $SessionStarted = false;
+    /**
+     * Starts a session if not already started.
+     * Use this function to prevent multiple session starts.
+     */
+    public static function SessionStart(){
+        if(!self::$SessionStarted){
+            session_start();
+            self::$SessionStarted = true;
+        }
+    }
 
 
 }
-
-Class Log {
-
+/**
+ * A class to handle the log.
+ * Source code must be in this file because very basic core functions insists on that.
+ */
+class Log {
+    /**
+     * Contains the instance of an Log obejcet.
+     * @var Log 
+     */
     protected static $Log = null;
+    /**
+     * Contains an array of the log lines.
+     * @var array
+     */
     protected $LogTrace;
+    
+    /**
+     * Contains the handle of the current log file.
+     * @var type 
+     */
     protected $LogFileHandle = null;
 
+    
     public function __construct() {
         $this->LogTrace = array();
         $date = new DateTime();
@@ -323,7 +457,11 @@ Class Log {
 
         $this->LogFileHandle = fopen($GeneratedFilePath, 'w');
     }
-
+    
+    /**
+     * Writes a line in the log file and saves it into the log trace.
+     * @param string $Message 
+     */
     public function Write($Message) {
         If ($this->LogFileHandle != null){
             fwrite($this->LogFileHandle, $Message);
@@ -331,6 +469,10 @@ Class Log {
         array_push($this->LogTrace, $Message);
     }
 
+    /**
+     * Writes a line in the log file and saves it into the log trace if logging is turned on.
+     * @param string $Message 
+     */
     public static function WriteLine($Message) {
         if (Core::$Config['Log']['On'] == true) {
             If (self::$Log == null) {
@@ -339,7 +481,12 @@ Class Log {
             self::$Log->Write($Message . "\n");
         }
     }
-
+    
+    /**
+     * Returns a log trace.
+     * Can be used for a exception page.
+     * @return string 
+     */
     public static function GetTrace(){
         $TraceString = "";
         If (self::$Log != null) {
@@ -348,6 +495,11 @@ Class Log {
         return $TraceString;
     }
 
+    /**
+     * Returns a log trace.
+     * Can be used for a exception page.
+     * @return string 
+     */
     public function GetTraceString(){
         $TraceString = "";
         $Max = count($this->LogTrace);
@@ -363,7 +515,9 @@ Class Log {
         }
         return $TraceString;
     }
-
+    /**
+     * Destroys the log file handle when finished.
+     */
     public function __destruct() {
         if ($this->LogFileHandle != null) {
             fclose($this->LogFileHandle);
@@ -371,8 +525,14 @@ Class Log {
     }
 
 }
-
+/**
+ * A simple associative array
+ */
 Class KeyValueArray {
+    /**
+     * Array of KeyValuePairs.
+     * @var array 
+     */
     protected $KeyValuePairs = null;
 
 
@@ -380,7 +540,11 @@ Class KeyValueArray {
         $this->KeyValuePairs = array();
     }
 
-
+    /**
+     * Add a value to a key if the key doesn't exists.
+     * @param string $Key
+     * @param mixed $Value 
+     */
     public function Add($Key, $Value){
         if(!$this->ContainsKey($Key)){
             $KeyValuePair = new KeyValuePair($Key, $Value);
@@ -390,7 +554,12 @@ Class KeyValueArray {
             throw new Exception('The key already exists: '. $Key);
         }
     }
-
+    
+    /**
+     * Set a value to a key even when the key already exists.
+     * @param string $Key
+     * @param mixed $Value 
+     */
     public function Set($Key, $Value){
         if($this->ContainsKey($Key)){
             $Pair = $this->GetPair($Key);
@@ -407,6 +576,10 @@ Class KeyValueArray {
 
     }
 
+    /**
+     * Removes a key from the array.
+     * @param type $Key 
+     */
     public function Remove($Key){
         if($this->ContainsKey($Key)){
             unset($this->KeyValuePairs[$Key]);
@@ -416,6 +589,11 @@ Class KeyValueArray {
         }
     }
 
+    /**
+     * Returns the KeyValuePair.
+     * @param string $Key
+     * @return KeyValuePair 
+     */
     public function GetPair($Key){
         foreach( $this->KeyValuePairs as $KeyValuePair){
             if($KeyValuePair->GetKey()==$Key){
@@ -425,6 +603,11 @@ Class KeyValueArray {
         return null;
     }
 
+    /**
+     * Returns the value.
+     * @param string $Key
+     * @return mixed 
+     */
     public function Get($Key){
         foreach( $this->KeyValuePairs as $KeyValuePair){
             if($KeyValuePair->GetKey()==$Key){
@@ -434,6 +617,11 @@ Class KeyValueArray {
         return null;
     }
 
+    /**
+     * Checks if a key exists,
+     * @param string $Key
+     * @return bool 
+     */
     public function ContainsKey($Key){
         foreach($this->KeyValuePairs as $KeyValuePair ){
             if($KeyValuePair->GetKey()==$Key){
@@ -443,6 +631,11 @@ Class KeyValueArray {
         return false;
     }
 
+    /**
+     * Checks if the value to a key is not empty.
+     * @param string $Key
+     * @return bool 
+     */
     public function IsNotEmpty($Key){
         foreach($this->KeyValuePairs as $KeyValuePair ){
             if($KeyValuePair->GetKey()==$Key){
@@ -457,33 +650,64 @@ Class KeyValueArray {
         }
         return false;
     }
+    
 
 }
 
+/**
+ * A class that assigns a key to a value.
+ */
 Class KeyValuePair{
+    /**
+     *
+     * @var string 
+     */
     protected $Key = null;
+    /**
+     *
+     * @var mixed 
+     */
     protected $Value = null;
 
     public function __construct($Key, $Value){
         $this->Key = $Key;
         $this->Value = $Value;
     }
-
+    
+    /**
+     * Returns the key.
+     * @return string 
+     */
     public function GetKey(){
         return $this->Key;
     }
 
+    /**
+     * Sets the value.
+     * @param mixed $Value 
+     */
     public function SetValue($Value){
         $this->Value = $Value;
     }
 
+    /**
+     * Returns the value.
+     * @return mixed 
+     */
     public function GetValue(){
         return $this->Value;
     }
 
+    /**
+     * Returns the value.
+     * @return mixed. 
+     */
     public function  __toString() {
         return $this->Value;
     }
 }
+/**
+ * Exception when no route was found.
+ */
 class NoRouteFoundException extends Exception { }
 ?>

@@ -1,13 +1,26 @@
 <?php
 
-
 class MySQLBuilder {
-    
-    public static function CreateWhereStatementByPrimaryKey(ModelTable $ModelTable){
-       return 'WHERE ' . $ModelTable->GetTableName()  . '.' . $ModelTable->GetPrimaryKeyName() . ' = "%s"';
+
+    /**
+     * Creates a where statement by a primary key.
+     * Example:
+     * WHERE Author.AuthorID = "%s"
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    public static function CreateWhereStatementByPrimaryKey(ModelTable $ModelTable) {
+        return 'WHERE ' . $ModelTable->GetTableName() . '.' . $ModelTable->GetPrimaryKeyName() . ' = "%s"';
     }
-    
-    public static function CreateSelectStatement(ModelTable $ModelTable, $Conditions,$OrderBy){
+
+    /**
+     * Creates a select statement.
+     * @param ModelTable $ModelTable
+     * @param string $Conditions
+     * @param string $OrderBy
+     * @return string 
+     */
+    public static function CreateSelectStatement(ModelTable $ModelTable, $Conditions, $OrderBy) {
         $SQL = '';
         $SQL .= self::CreateSelectPart($ModelTable);
         $SQL .= ' ';
@@ -18,40 +31,32 @@ class MySQLBuilder {
         $SQL .= $OrderBy;
         return $SQL;
     }
-    
-    protected static function CreateSelectPart(ModelTable $ModelTable){
+
+    /**
+     * Creates the select header.
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    protected static function CreateSelectPart(ModelTable $ModelTable) {
         $SQL = 'SELECT ';
         $Count = 1;
         $Join = false;
         $AliasArray = array();
-        foreach ($ModelTable->GetDataDefinition() as $Key => $Definition) {
-            switch ($Definition['Type']) {
+        $Helper = $ModelTable->GetFieldDefinitionHelper();
+        foreach ($Helper->GetFieldList() as $FieldName) {
+            switch ($Helper->GetFieldType($FieldName)) {
                 case 'Normal':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= self::SQLAttribute($ModelTable,$Key);
-                    $Count++;
-                    break;
                 case 'PrimaryKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= self::SQLAttribute($ModelTable,$Key);
-                    $Count++;
-                    break;
                 case 'ForeignKey':
-                    if($Count>1){
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ', ';
                     }
-                    $SQL .=  self::SQLAttribute($ModelTable,$Key);
+                    $SQL .= self::SQLAttribute($ModelTable, $FieldName);
                     $Count++;
                     break;
                 case 'ManyForeignObjects':
-                    if($Count>1){
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ', ';
                     }
@@ -60,103 +65,114 @@ class MySQLBuilder {
                     for ($i = 0; $i < count($AliasArray) + 1; $i++) {
                         $Alias .= 't';
                     }
-                    $AliasArray[$Key] = $Alias;
+                    $AliasArray[$FieldName] = $Alias;
                     // get definition for the foreign table
-                    $ForeignModelTable =  ModelTable::Get($Definition['ModelTable']);
+
+                    $ForeignModelTable = $Helper->GetModelTable($FieldName);
                     // generate group_conact
-                    $SQL.= 'GROUP_CONCAT(DISTINCT ' . self::SQLAttribute($ModelTable,$ForeignModelTable->GetPrimaryKeyName(), '',$Alias  ) .') as '. $Key;
+                    $SQL.= 'GROUP_CONCAT(DISTINCT ' . self::SQLAttribute($ModelTable, $ForeignModelTable->GetPrimaryKeyName(), '', $Alias) . ') as ' . $FieldName;
                     $Join = true;
                     $Count++;
                     break;
             }
-            
         }
-        $SQL .=  ' FROM ' . $ModelTable->GetTableName() ;
+        $SQL .= ' FROM ' . $ModelTable->GetTableName();
 
 
-        if($Join){
+        if ($Join) {
             // add joins
-            foreach ($ModelTable->GetDataDefinition() as $Key => $Definition) {
-                 if ($Definition['Type']=='ManyForeignObjects') {
-                     $ForeignModelTable =  ModelTable::Get($Definition['ModelTable']);
-                         $SQL .= ' LEFT JOIN ' . $ForeignModelTable->GetTableName() . ' as ' . $AliasArray[$Key]
-                                . ' ON ' . self::SQLAttribute($ModelTable,$Definition['ForeignKey'],'',$AliasArray[$Key])
-                                . ' = ' . self::SQLAttribute($ModelTable,$ModelTable->GetPrimaryKeyName(),'',$ModelTable->GetTableName());
-    
-
-                 }
+            foreach ($Helper->GetManyForeignObjectsFieldList() as $FieldName) {
+                $ForeignModelTable = $Helper->GetModelTable($FieldName);
+                $SQL .= ' LEFT JOIN ' . $ForeignModelTable->GetTableName() . ' as ' . $AliasArray[$FieldName]
+                        . ' ON ' . self::SQLAttribute($ModelTable, $Helper->GetForeignKeyFieldName($FieldName), '', $AliasArray[$FieldName])
+                        . ' = ' . self::SQLAttribute($ModelTable, $ModelTable->GetPrimaryKeyName(), '', $ModelTable->GetTableName());
             }
         }
         return $SQL;
     }
-    
-    protected static function SQLAttribute(ModelTable $ModelTable,$Attribute, $Alias = '', $Table = ''){
-        if($Table==''){
+
+    /**
+     * Creates a sql attribute part.
+     * Example:
+     * Authors.AuthorID
+     * or
+     * Authors.AuthorID as ID
+     * @param ModelTable $ModelTable
+     * @param string $Attribute
+     * @param string $Alias
+     * @param string $Table
+     * @return string 
+     */
+    public static function SQLAttribute(ModelTable $ModelTable, $Attribute, $Alias = '', $Table = '') {
+        if ($Table == '') {
             $Table = $ModelTable->GetTableName();
         }
-        $SQL = $Table . '.'. $Attribute;
-        if($Alias!=''){
-            $SQL .= ' as '. $Alias;
-        }
-        return $SQL;
-    }
-    
-    protected static function CreateGroupByStatement(ModelTable $ModelTable){
-        $Count = 1;
-        $SQL = '';
-        foreach ($ModelTable->GetDataDefinition() as $Key => $Definition) {
-             if ($Definition['Type']=='ManyForeignObjects') {
-                if($Count>1){
-                     // add , at the end
-                    $SQL .= ', ';
-                }
-                $SQL .=  self::SQLAttribute($ModelTable,$ModelTable->GetPrimaryKeyName());
-                $Count++;
-             }
-        }
-        // if we have a group by part
-        if($Count>1){
-            $SQL = 'GROUP BY '. $SQL;
+        $SQL = $Table . '.' . $Attribute;
+        if ($Alias != '') {
+            $SQL .= ' as ' . $Alias;
         }
         return $SQL;
     }
 
-    public static function CreateInsertStatement(ModelTable $ModelTable, Model $Object){
+    /**
+     * Creates group statement.
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    public static function CreateGroupByStatement(ModelTable $ModelTable) {
+        $Count = 1;
+        $SQL = '';
+        $Helper = $ModelTable->GetFieldDefinitionHelper();
+        foreach ($Helper->GetManyForeignObjectsFieldList() as $FieldName) {
+            if ($Count > 1) {
+                // add , at the end
+                $SQL .= ', ';
+            }
+            $SQL .= self::SQLAttribute($ModelTable, $ModelTable->GetPrimaryKeyName());
+            $Count++;
+        }
+        // if we have a group by part
+        if ($Count > 1) {
+            $SQL = 'GROUP BY ' . $SQL;
+        }
+        return $SQL;
+    }
+
+    /**
+     * Creates a insert statement.
+     * @param ModelTable $ModelTable
+     * @param Model $Object
+     * @return array $Result['SQL'], $Result['Parameters']
+     */
+    public static function CreateInsertStatement(ModelTable $ModelTable, Model $Object) {
         $SQL = 'INSERT INTO ' . $ModelTable->GetTableName();
-        $DataDefinition = $ModelTable->GetDataDefinition();
+        $Helper = $ModelTable->GetFieldDefinitionHelper();
         // create column list
         $SQL .= ' (';
         $Count = 1;
-        foreach($DataDefinition as $Key => $Definition){
-            switch($Definition['Type']){
+        foreach ($Helper->GetFieldList() as $FieldName) {
+            switch ($Helper->GetFieldType($FieldName)) {
                 case 'Normal':
-                    if($Count>1){
+                case 'ForeignKey':
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ', ';
                     }
-                    $SQL .= $Key;
+                    $SQL .= $FieldName;
                     $Count++;
                     break;
-               case 'ForeignKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    $SQL .= $Key;
-                    $Count++;
-                    break;
-               case 'PrimaryKey':
-                   // only insert a value if it is a guid otherwise ignore
-                   // the primarykey will be set on the database
-                   if(isset($Definition['IsGuid'])&&$Definition['IsGuid']==true){
-                        if($Count>1){
+                case 'PrimaryKey':
+                    // only insert a value if it is a guid otherwise ignore
+                    // the primarykey will be set on the database
+                    if ($Helper->IsGuid($FieldName)) {
+                        if ($Count > 1) {
                             // add , at the end
                             $SQL .= ', ';
                         }
-                        $SQL .= $Key;
+                        $SQL .= $FieldName;
                         $Count++;
-                   }
-                   break;
+                    }
+                    break;
             }
         }
         $SQL .= ')';
@@ -164,149 +180,151 @@ class MySQLBuilder {
         $SQL .= ' VALUES (';
         $Count = 1;
         $Parameters = array();
-        foreach($DataDefinition as $Key => $Definition){
-            switch($Definition['Type']){
+        foreach ($Helper->GetFieldList() as $FieldName) {
+            switch ($Helper->GetFieldType($FieldName)) {
                 case 'Normal':
-                    if($Count>1){
+                case 'ForeignKey':
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ', ';
                     }
-                    if(is_bool($Object->$Key)){
-                        if($Object->$Key==true)
+                    if (is_bool($Object->$FieldName)) {
+                        if ($Object->$FieldName == true)
                             $SQL .= 'TRUE';
                         else
-                             $SQL .= 'FALSE';
+                            $SQL .= 'FALSE';
                     }
-                    elseif($Object->$Key!==null){
-                        //$SQL .= '"'. $Object->$Key . '"';
+                    elseif ($Object->$FieldName !== null) {
                         $SQL .= '"%s"';
-                        array_push($Parameters, $Object->$Key);
-                    }
-                    else {
+                        array_push($Parameters, $Object->$FieldName);
+                    } else {
                         $SQL .= 'NULL';
                     }
                     $Count++;
                     break;
-               case 'ForeignKey':
-                    if($Count>1){
-                        // add , at the end
-                        $SQL .= ', ';
-                    }
-                    if(is_bool($Object->$Key)){
-                        if($Object->$Key==true)
-                            $SQL .= 'TRUE';
-                        else
-                             $SQL .= 'FALSE';
-                    }
-                    elseif($Object->$Key!==null){
-                        $SQL .= '"%s"';
-                        array_push($Parameters, $Object->$Key);
-                    }
-                    else {
-                        $SQL .= 'NULL';
-                    }
-                    $Count++;
-                    break;
-              case 'PrimaryKey':
-                   // only insert a value if it is a guid otherwise ignore
-                   // the primarykey will be set on the database
-                   if(isset($Definition['IsGuid'])&&$Definition['IsGuid']==true){
-                        if($Count>1){
+                case 'PrimaryKey':
+                    // only insert a value if it is a guid otherwise ignore
+                    // the primarykey will be set on the database
+                    if ($Helper->IsGuid($FieldName)) {
+                        if ($Count > 1) {
                             // add , at the end
                             $SQL .= ', ';
                         }
                         $SQL .= '"%s"';
                         array_push($Parameters, Core::CreateGuid());
                         $Count++;
-                   }
-                   break;
+                    }
+                    break;
             }
         }
         $SQL .= ')';
-        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
+        return array('SQL' => $SQL, 'Parameters' => $Parameters);
     }
-    
-    public static function CreateUpdateStatement(ModelTable $ModelTable, Model $Object){
-        $SQL = 'UPDATE '. $ModelTable->GetTableName() . ' SET ';
+
+    /**
+     * Creates an update statement.
+     * @param ModelTable $ModelTable
+     * @param Model $Object
+     * @return array $Result['SQL'], $Result['Parameters']
+     */
+    public static function CreateUpdateStatement(ModelTable $ModelTable, Model $Object) {
+        $SQL = 'UPDATE ' . $ModelTable->GetTableName() . ' SET ';
         $Count = 1;
         $Parameters = array();
-        foreach($ModelTable->GetDataDefinition() as $Key => $Definition){
-            switch($Definition['Type']){
+        $Helper = $ModelTable->GetFieldDefinitionHelper();
+        foreach ($Helper->GetFieldList() as $FieldName) {
+            switch ($Helper->GetFieldType($FieldName)) {
                 case 'Normal':
-                    if($Count>1){
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ', ';
                     }
-                    $Data =  $Object->GetObjectData($Key);
-                    if(is_bool($Data)){
-                        if($Data==true)
-                            $SQL .= $Key . '= TRUE';
+                    $Data = $Object->GetFieldData($FieldName);
+                    if (is_bool($Data)) {
+                        if ($Data == true)
+                            $SQL .= $FieldName . '= TRUE';
                         else
-                             $SQL .= $Key . '= FALSE';
+                            $SQL .= $FieldName . '= FALSE';
                     }
-                    elseif($Data!==null){
-                        //$SQL .= $Key .' = "' . $Data. '"';
-                        $SQL .= $Key .' = "%s"';
+                    elseif ($Data !== null) {
+                        $SQL .= $FieldName . ' = "%s"';
                         array_push($Parameters, $Data);
-                    }
-                    else {
-                        $SQL .= $Key .' = NULL';
+                    } else {
+                        $SQL .= $FieldName . ' = NULL';
                     }
                     $Count++;
                     break;
                 case 'ForeignKey':
-                    if($Count>1){
+                    if ($Count > 1) {
                         // add , at the end
                         $SQL .= ', ';
                     }
-                    $Data =  $Object->GetObjectData($Key);
-                    if(is_bool($Data)){
-                        if($Data==true)
-                            $SQL .= $Key . '= TRUE';
+                    $Data = $Object->GetFieldData($FieldName);
+                    if (is_bool($Data)) {
+                        if ($Data == true)
+                            $SQL .= $FieldName . '= TRUE';
                         else
-                             $SQL .= $Key . '= FALSE';
+                            $SQL .= $FieldName . '= FALSE';
                     }
-                    elseif($Data!==null){
-                        $SQL .= $Key .' = "' . $Data. '"';
-                    }
-                    else {
-                        $SQL .= $Key .' = NULL';
+                    elseif ($Data !== null) {
+                        $SQL .= $FieldName . ' = "' . $Data . '"';
+                    } else {
+                        $SQL .= $FieldName . ' = NULL';
                     }
                     $Count++;
                     break;
             }
         }
-        //$SQL .= ' WHERE '. $ModelTable->GetPrimaryKeyName() . ' = "%s"';
-        $SQL .= ' '. self::CreateWhereStatementByPrimaryKey($ModelTable);
-        array_push($Parameters, $Object->GetObjectData($ModelTable->GetPrimaryKeyName()));
-        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
+        $SQL .= ' ' . self::CreateWhereStatementByPrimaryKey($ModelTable);
+        array_push($Parameters, $Object->GetFieldData($ModelTable->GetPrimaryKeyName()));
+        return array('SQL' => $SQL, 'Parameters' => $Parameters);
     }
-   
-    public static function CreateDeleteStatement(ModelTable $ModelTable){
-        return 'DELETE FROM '. $ModelTable->GetTableName() . ' WHERE '. $ModelTable->GetPrimaryKeyName() . ' = "%s"';
+
+    /**
+     * Creates a delete statement.
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    public static function CreateDeleteStatement(ModelTable $ModelTable) {
+        return 'DELETE FROM ' . $ModelTable->GetTableName() . ' WHERE ' . $ModelTable->GetPrimaryKeyName() . ' = "%s"';
     }
-    
-    public static function CreateWhereStatementByPrimaryKeys(ModelTable $ModelTable, $Keys){
+
+    /**
+     * Creates a where statement according to primary keys.
+     * 
+     * @param ModelTable $ModelTable
+     * @param array $Keys
+     * @return array $Result['SQL'], $Result['Parameters'] 
+     */
+    public static function CreateWhereStatementByPrimaryKeys(ModelTable $ModelTable, array $Keys) {
         $Result = self::CreateInStatementForKeys($ModelTable, $ModelTable->GetPrimaryKeyName(), $Keys);
         $Result['SQL'] = "WHERE " . $Result['SQL'];
         return $Result;
     }
-    
-    public static function CreateInStatementForKeys(ModelTable $ModelTable, $Field, $Keys){
-        $SQL =  $ModelTable->GetTableName()  . "." . $Field . " IN ( ";
+
+    /**
+     * Create a in statement for keys
+     * @param ModelTable $ModelTable
+     * @param string $Field
+     * @param array $Keys
+     * @return array $Result['SQL'], $Result['Parameters']
+     */
+    public static function CreateInStatementForKeys(ModelTable $ModelTable, $FieldName, array $Keys) {
+        $SQL = $ModelTable->GetTableName() . "." . $FieldName . " IN ( ";
         $Count = 0;
         $Parameters = array();
-        foreach($Keys as $Key){
-            if($Count!=0){
-                $SQL .=  ",";
+        foreach ($Keys as $Key) {
+            if ($Count != 0) {
+                $SQL .= ",";
             }
-            $SQL .=  "'%s'";
+            $SQL .= "'%s'";
             array_push($Parameters, $Key);
             $Count++;
         }
         $SQL .= ')';
-        return array ('SQL' => $SQL, 'Parameters' => $Parameters);
+        return array('SQL' => $SQL, 'Parameters' => $Parameters);
     }
+
 }
 
 ?>

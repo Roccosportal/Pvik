@@ -3,7 +3,7 @@ RewriteEngine on
 
 #No access to sensitive directory
 RewriteRule ^code\/.*$ index.php [L]
-RewriteRule ^config\/.*$ index.php [L]
+RewriteRule ^configs\/.*$ index.php [L]
 RewriteRule ^controllers\/.*$ index.php [L]
 RewriteRule ^core\/.*$ index.php [L]
 RewriteRule ^model\/.*$ index.php [L]

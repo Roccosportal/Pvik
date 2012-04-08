@@ -1,5 +1,5 @@
 <?php
-self::$Config['IncludeFolders'] = array ('~/core', '~/code', '~/model', '~/controllers');
+self::$Config['IncludeFolders'] = array ('~/core/', '~/code/', '~/model/', '~/controllers/');
 self::$Config['Log']['On'] = false;
 self::$Config['Log']['UseOneFile'] = true;
 self::$Config['UnderConstruction']['Enabled'] = false;

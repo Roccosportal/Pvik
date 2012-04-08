@@ -1,10 +1,29 @@
 <?php
-
+/**
+ * Class for a master page view.
+ */
 class MasterPage {
+    /**
+     * Contains the current view.
+     * @var View 
+     */
     protected $View = null;
+    /**
+     * Contains the path to the master page view.
+     * @var type 
+     */
     protected $MasterPagePath;
+    /**
+     * Contains the view data from the view.
+     * @var type 
+     */
     protected $ViewData = null;
 
+    /**
+     *
+     * @param string $MasterPagePath
+     * @param View $View 
+     */
     public function __construct($MasterPagePath,View $View){
         $this->MasterPagePath = $MasterPagePath;
 
@@ -15,6 +34,9 @@ class MasterPage {
         $this->ExecutePartialCode();
     }
 
+    /**
+     * Execute the partial master page view. Should be ran after the normal views ran.
+     */
     protected function ExecutePartialCode(){
         // delete old content and ignore it
         ob_get_clean();
@@ -24,13 +46,18 @@ class MasterPage {
          // include partial code
         require($this->MasterPagePath);
     }
-
+    
+    /**
+     * Get the content from a normal view that was executed before.
+     * @param string $ContentId 
+     */
     public function UseContent($ContentId){
         $Content = '';
         if($this->View!=null){
             $Contents = $this->View->GetContents();
-            if(is_array($Contents) && isset($Contents[$ContentId])){
-                $Content = $Contents[$ContentId];
+            $Content = $Contents->Get($ContentId);
+            if($Content==null){
+                $Content = '';
             }
         }
         echo $Content;

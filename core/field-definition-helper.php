@@ -291,7 +291,7 @@ class FieldDefinitionHelper {
         
         }
         elseif($this->IsTypeForeignObject($FieldName)){
-            $ForeignKeyFieldName = $Helper->GetForeignKeyFieldName($FieldName);
+            $ForeignKeyFieldName = $this->GetForeignKeyFieldName($FieldName);
             $ModelTableName = $this->GetModelTableName($ForeignKeyFieldName);
              if(!ModelTable::Exists($ModelTableName)){
                 throw new Exception('Model table class for ' . $ModelTableName . ' not found. Used for field ' . $FieldName . ' in ' . get_class($this->GetOriginModelTable()));

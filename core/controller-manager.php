@@ -68,7 +68,6 @@ class ControllerManager {
     public static function GetViewPathByAction($ActionName, $Folder = '~/views/'){
         $FolderPath = Core::RealPath($Folder);
         $Path = self::SearchForView($FolderPath, Core::ConvertNameToPath(self::$ControllerName), Core::ConvertNameToPath($ActionName) .'.php');
-        Log::WriteLine('ViewPath: ' . $Path);
         return $Path;
     }
     
@@ -83,9 +82,10 @@ class ControllerManager {
     public static function SearchForView($FolderPath, $ControllerFolderName, $ActionFileName){
          $Path = '';
          if ($Handle = opendir($FolderPath)) { // e.g. /views/
-            while (false !== ($SubFolder = readdir($Handle))) {
+            while (false !== ($SubFolder = readdir($Handle))) {	
                  // it's a sub folder
-                $SubFolderPath = $FolderPath  . $SubFolder . '/';
+                $SubFolderPath = $FolderPath  . $SubFolder;
+                Log::WriteLine($SubFolderPath);
                 if($SubFolder != '.' && $SubFolder != '..' && is_dir($SubFolderPath)){
                     // it is the controller folder
                     if($SubFolder==$ControllerFolderName){
@@ -95,7 +95,7 @@ class ControllerManager {
                     }
                     else {
                         
-                        $Search = self::SearchForView($SubFolderPath, $ControllerFolderName, $ActionFileName);
+                        $Search = self::SearchForView($SubFolderPath .'/', $ControllerFolderName, $ActionFileName);
                         if($Search!=""){
                             // search found something
                             $Path = $Search;

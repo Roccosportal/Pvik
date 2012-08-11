@@ -165,7 +165,7 @@ class ModelTable {
      */
     public function GetModelTableName(){
         if($this->ModelTableName==null){
-            $this->ModelTableName = str_replace('ModelTable', '', get_class());
+            $this->ModelTableName = str_replace('ModelTable', '', get_class($this));
         }
         return $this->ModelTableName;
     }

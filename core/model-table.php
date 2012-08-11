@@ -277,9 +277,9 @@ class ModelTable {
                                 $ForeignObject = $ForeignModelTable->LoadFromCacheByPrimaryKey($ForeignKey);
                                 if($ForeignObject!=null){
                                     // add primary key from inserted object to list
-                                    $Old = $ForeignObject->GetFieldData($ForeignDefinitionKey);
+                                    $Old = $ForeignObject->GetFieldData($ForeignFieldName);
                                     $New = $Old . ',' . $PrimaryKey;
-                                    $ForeignObject->SetFieldData($ForeignDefinitionKey, $New);
+                                    $ForeignObject->SetFieldData($ForeignFieldName, $New);
                                 }
                                 break;
                             }
@@ -340,9 +340,9 @@ class ModelTable {
                             // searching for a ManyForeignObjects field with ForeignKey reference to this field
                             if($ForeignHelper->GetModelTableName($ForeignModelTableFieldName) == $this->GetModelTableName()
                                     && $ForeignHelper->GetForeignKeyFieldName($ForeignModelTableFieldName) == $FieldName){
-                                $OldKeys = $OldForeignObject->GetFieldData($ForeignModelTableFieldName);
+                                $OldKeys = $ForeignObject->GetFieldData($ForeignModelTableFieldName);
                                 // delete from old keys
-                                $OldForeignObject->SetObjectData($ForeignModelTableFieldName, str_replace($PrimaryKey, '', $OldKeys));
+                                $ForeignObject->SetFieldData($ForeignModelTableFieldName, str_replace($PrimaryKey, '', $OldKeys));
                                 break;
 
                             }

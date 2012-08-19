@@ -13,7 +13,8 @@ class Model {
             $this->SetFieldData($FieldName, $Value);
         }
         $ModelTable = $this->GetModelTable();
-        $ModelTable->StoreInCache($this);
+        $ModelTable->GetCache()->Store($this);
+        return $this;
     }
     
     public function GetModelTableName(){
@@ -27,7 +28,6 @@ class Model {
     public function  __get($FieldName) {
         $ModelTable  = $this->GetModelTable();
         $Helper = $ModelTable->GetFieldDefinitionHelper();
-        //$DataDefinition = $ModelTable->GetDataDefinition();
         
        
         if($Helper->FieldExists($FieldName)){
@@ -91,54 +91,15 @@ class Model {
                      $this->SetFieldData($FieldName, $Value);
                      break;
                 case 'ForeignKey':
-                    $OldForeignKey = $this->GetFieldData($FieldName);
-                    $this->SetFieldData($FieldName, $Value);
-                    $PrimaryKey = $this->GetPrimaryKey();
-                    if($PrimaryKey!=null){
-                        $ForeignModelTable= $Helper->GetModelTable($FieldName);
-                        // if old object exist in cache we need to update the instance
-                        $OldForeignObject = $ForeignModelTable->LoadFromCacheByPrimaryKey($OldForeignKey);
-                        $MatchedFieldName = null;
-                        if($OldForeignObject!=null){
-                            // look through foreign model
-                            $ForeignHelper = $ForeignModelTable->GetFieldDefinitionHelper();
-                            foreach($ForeignHelper->GetManyForeignObjectsFieldList() as $ForeignModelTableFieldName){
-                                // searching for a ManyForeignObjects field with ForeignKey reference to this field
-                                if($ForeignHelper->GetModelTableName($ForeignModelTableFieldName) == $this->GetModelTableName()
-                                        && $ForeignHelper->GetForeignKeyFieldName($ForeignModelTableFieldName) == $FieldName){
-                                    // save for new foreign object
-                                    $MatchedFieldName = $ForeignModelTableFieldName;
-                                    $OldKeys = $OldForeignObject->GetFieldData($ForeignModelTableFieldName);
-                                    // delete from old keys
-                                    $OldForeignObject->SetFieldData($ForeignModelTableFieldName, str_replace($PrimaryKey, '', $OldKeys));
-                                    break;
-                                    
-                                }
-                            }
+                        
+                        $PrimaryKey = $this->GetPrimaryKey();
+                        if ($PrimaryKey != null) {
+                                $this->GetModelTable()->GetCache()->DeleteForeignKeyReference($this, $FieldName);
                         }
-
-                        // if new object exist in cache we need to update the instance
-                        $NewForeignObject = $ForeignModelTable->LoadFromCacheByPrimaryKey($Value);
-                        if($NewForeignObject!=null){
-                            if($OldForeignObject==null){
-                                // we haven't looked for a matched field yet
-                                $ForeignHelper = $ForeignModelTable->GetFieldDefinitionHelper();
-                                foreach($ForeignHelper->GetManyForeignObjectsFieldList() as $ForeignModelTableFieldName){
-                                    // searching for a ManyForeignObjects field with ForeignKey reference to this field
-                                    if($ForeignHelper->GetModelTableName($ForeignModelTableFieldName) == $this->GetModelTableName()
-                                            && $ForeignHelper->GetForeignKeyFieldName($ForeignModelTableFieldName) == $FieldName){
-                                        $MatchedFieldName = $ForeignModelTableFieldName;
-                                        break;
-                                    }
-                                }
-                            }
-                            if($MatchedField!=null){
-                                $OldKeys = $NewForeignObject->GetFieldData($MatchedField);
-                                // add to keys
-                                $NewForeignObject->UpdateObjectData($MatchedField, $OldKeys . ' ' . $Value);
-                            }
+                        $this->SetFieldData($FieldName, $Value);
+                          if ($PrimaryKey != null) {
+                                $this->GetModelTable()->GetCache()->InsertForeignKeyReference($this, $FieldName);
                         }
-                    }
                     
                     break;
                 case 'ForeignObject':
@@ -228,5 +189,3 @@ class Model {
         }
     }
 }
-
-?>

@@ -63,5 +63,3 @@ class MasterPage {
         echo $Content;
     }
 }
-
-?>

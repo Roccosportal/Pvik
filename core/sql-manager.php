@@ -3,85 +3,75 @@
 /**
  * Class that refers to the right function depending on which database is selected.
  */
-class SQLManager {
-
+abstract class SQLManager {
+    protected static $Instance = null;
+    
     /**
-     * Contains the current used database system.
-     * @var string 
+     * Get the current instance of the sql manager
+     * @return SQLManager 
      */
-    protected static $DatabaseSystem = null;
-
-    /**
-     * Returns the current used databse system.
-     * @return string 
-     */
-    public static function GetDatabaseSystem() {
-        if (self::$DatabaseSystem == null) {
-            if (isset(Core::$Config['MySQL'])) {
-                self::$DatabaseSystem = 'MySQL';
-                Log::WriteLine('Use MySQL as database system');
-            } elseif (isset(Core::$Config['MSSQL'])) {
-                self::$DatabaseSystem = 'MSSQL';
-                Log::WriteLine('Use MSSQL as database system');
-            } elseif (isset(Core::$Config['SQLSRV'])) {
-                self::$DatabaseSystem = 'SQLSRV';
-                Log::WriteLine('Use SQLSRV as database system');
+    public static function GetInstance(){
+            if(self::$Instance == null){
+                         if (isset(Core::$Config['MySQL'])) {
+                                 self::$Instance = new MySQLManager();
+                                 Log::WriteLine('Use MySQL as database system');
+                         } elseif (isset(Core::$Config['MSSQL'])) {
+                                 self::$Instance = new MSSQLManager();
+                                 Log::WriteLine('Use MSSQL as database system');
+                        } elseif (isset(Core::$Config['SQLSRV'])) {
+                                 self::$Instance = new SQLSRVManager();
+                                Log::WriteLine('Use SQLSRV as database system');
+                         }
             }
-        }
-        return self::$DatabaseSystem;
+            return self::$Instance;
     }
 
-    /**
+     /**
      * Executes a statement.
      * @param string $QueryString
      * @return mixed 
      */
-    public static function ExecuteQueryString($QueryString) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::ExecuteQueryString($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::ExecuteQueryString($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::ExecuteQueryString($QueryString);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
-    }
+    abstract public function ExecuteQueryString($QueryString);
+    
+      /**
+     *  Returns the last inserted id
+     * @return mixed 
+     */
+    abstract public function GetLastInsertedId();
+    
+       /**
+     *  Escapes a string.
+     * @param string $String
+     * @return string
+     */
+    abstract public  function EscapeString($String);
+    
+      /**
+     *  Fetches an associative array from a database result
+     * @param mixed $Result
+     * @return array
+     */
+     abstract public  function FetchAssoc($Result);
 
-    /**
+      /**
      * Executes a select statement.
      * @param type $QueryString
      * @return mixed 
      */
-    public static function Select($QueryString) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::Select($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::Select($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::Select($QueryString);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function Select($QueryString) {
+        return $this->ExecuteQueryString($QueryString);
     }
 
-    /*
+    /**
      * Executes a select statement with parameters.
      * @param string $QueryString
      * @param array $Parameters
      * @return mixed 
      */
-
-    public static function SelectWithParameters($QueryString, array $Parameters) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::SelectWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::SelectWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::SelectWithParameters($QueryString, $Parameters);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function SelectWithParameters($QueryString, array $Parameters) {
+        $ConvertedParameters = $this->ConvertParameters($Parameters);
+        $QueryString = vsprintf($QueryString, $ConvertedParameters);
+        return $this->Select($QueryString);
     }
 
     /**
@@ -89,17 +79,12 @@ class SQLManager {
      * @param string $QueryString
      * @return mixed 
      */
-    public static function Insert($QueryString) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::Insert($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::Insert($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::Insert($QueryString);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function Insert($QueryString) {
+        $this->ExecuteQueryString($QueryString);
+        return $this->GetLastInsertedId();
     }
+    
+  
 
     /**
      * Executes a insert statement with parameters.
@@ -107,16 +92,10 @@ class SQLManager {
      * @param array $Parameters
      * @return mixed 
      */
-    public static function InsertWithParameters($QueryString, array $Parameters) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::InsertWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::InsertWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::InsertWithParameters($QueryString, $Parameters);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function InsertWithParameters($QueryString, array $Parameters) {
+        $ConvertedParameters =$this->ConvertParameters($Parameters);
+        $QueryString = vsprintf($QueryString, $ConvertedParameters);
+        return $this->Insert($QueryString);
     }
 
     /**
@@ -124,16 +103,8 @@ class SQLManager {
      * @param string $QueryString
      * @return mixed 
      */
-    public static function Update($QueryString) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::Update($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::Update($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::Update($QueryString);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function Update($QueryString) {
+        return $this->ExecuteQueryString($QueryString);
     }
 
     /**
@@ -142,16 +113,10 @@ class SQLManager {
      * @param array $Parameters
      * @return type 
      */
-    public static function UpdateWithParameters($QueryString, array $Parameters) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::UpdateWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::UpdateWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::UpdateWithParameters($QueryString, $Parameters);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function UpdateWithParameters($QueryString, array $Parameters) {
+        $ConvertedParameters = $this->ConvertParameters($Parameters);
+        $QueryString = vsprintf($QueryString, $ConvertedParameters);
+        return $this->Update($QueryString);
     }
 
     /**
@@ -159,16 +124,8 @@ class SQLManager {
      * @param string $QueryString
      * @return mixed 
      */
-    public static function Delete($QueryString) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::Delete($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::Delete($QueryString);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::Delete($QueryString);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function Delete($QueryString) {
+        return $this->ExecuteQueryString($QueryString);
     }
 
     /**
@@ -177,16 +134,10 @@ class SQLManager {
      * @param type $Parameters
      * @return type 
      */
-    public static function DeleteWithParameters($QueryString, array $Parameters) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::DeleteWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::DeleteWithParameters($QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::DeleteWithParameters($QueryString, $Parameters);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
-        }
+    public function DeleteWithParameters($QueryString, array $Parameters) {
+        $ConvertedParameters = $this->ConvertParameters($Parameters);
+        $QueryString = vsprintf($QueryString, $ConvertedParameters);
+        return $this->Delete($QueryString);
     }
 
     /**
@@ -194,17 +145,16 @@ class SQLManager {
      * @param array $Parameters
      * @return array 
      */
-    public static function ConvertParameters($Paremeters) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::ConvertParameters($Paremeters);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::ConvertParameters($Paremeters);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::ConvertParameters($Paremeters);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
+    public function ConvertParameters(array $Parameters) {
+        $ConvertedParameters = array();
+        foreach ($Parameters as $Parameter) {
+            array_push($ConvertedParameters, $this->EscapeString($Parameter));
         }
+        return $ConvertedParameters;
     }
+    
+ 
+    
 
     /**
      * Creates a ModelArray from a select statemet
@@ -213,18 +163,19 @@ class SQLManager {
      * @param array $Parameters
      * @return ModelArray 
      */
-    public static function FillList(ModelTable $ModelTable, $QueryString, array $Parameters) {
-        if (self::GetDatabaseSystem() == 'MySQL') {
-            return MySQLManager::FillList($ModelTable, $QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'MSSQL') {
-            return MSSQLManager::FillList($ModelTable, $QueryString, $Parameters);
-        } elseif (self::GetDatabaseSystem() == 'SQLSRV') {
-            return SQLSRVManager::FillList($ModelTable, $QueryString, $Parameters);
-        } else {
-            throw new Exception('Couldn\'t find the correct SQLManager. Probably misconfigured config file.');
+    public function FillList(ModelTable $ModelTable, $QueryString, array $Parameters) {
+        $Result = $this->SelectWithParameters($QueryString, $Parameters);
+        $List = new ModelArray();
+        $List->SetModelTable($ModelTable);
+        while ($Data = $this->FetchAssoc($Result)) {
+            $Classname = $ModelTable->GetModelClassName();
+            $Model = new $Classname();
+            $Model->Fill($Data);
+            $List->append($Model);
         }
+        return $List;
     }
+    
+  
 
 }
-
-?>

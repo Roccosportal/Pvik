@@ -49,4 +49,3 @@ class ValidationState {
         return $this->Valid;
     }
 }
-?>

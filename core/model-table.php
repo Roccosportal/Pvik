@@ -68,9 +68,14 @@ class ModelTable {
      * @var string 
      */
     protected $PrimaryKeyName;
+//    /**
+//     * Contains the already loaded models.
+//     * @var array 
+//     */
+//    protected $Cache;
     /**
-     * Contains the already loaded models.
-     * @var array 
+     *  Contains the cache class
+     * @var CacheModelTable 
      */
     protected $Cache;
     /**
@@ -90,23 +95,16 @@ class ModelTable {
      * @var string 
      */
     protected $ModelName;
-    /**
-     * Contains a value that indicates if all Models are loaded.
-     * @var bool 
-     */
-    protected $ChacheLoadedAll;
-    /**
-     * Contains the ModelArray of all Models if all are loaded.
-     * @var ModelArray
-     */
-    protected $ChacheModelArrayAll;
 
     /**
-     * 
+     *
+     * @return CacheModelTable 
      */
-    public function __construct(){
-        $this->Cache = array();
-        $this->LoadedAll = false;
+    public function GetCache(){
+            if($this->Cache===null){
+                     $this->Cache = new CacheModelTable($this);
+            }
+            return $this->Cache;
     }
     
     /**
@@ -170,22 +168,6 @@ class ModelTable {
         return $this->ModelTableName;
     }
     
-    /**
-     * Stores a instance of model into the cache.
-     * @param Model $Instance 
-     */
-    public function StoreInCache(Model $Instance){
-        if($Instance!=null){
-            $PrimaryKey = $Instance->GetPrimaryKey();
-            if($PrimaryKey!=''){
-                // store in cache
-                $this->Cache[$PrimaryKey] = array (
-                    'Instance' => $Instance,
-                    'Timestamp' => microtime()
-                );
-            }
-        }
-    }
 
     /**
      * Returns a instance of a field definition helper or creates a new one.
@@ -206,13 +188,12 @@ class ModelTable {
      * @return ModelArray 
      */
     public function Select(Query $Query){
-        $QueryString = SQLBuilder::CreateSelectStatement($this, $Query->GetConditions(), $Query->GetOrderBy());
-        $ModelArray = SQLManager::FillList($this, $QueryString, $Query->GetParameters());
+        $QueryString = SQLBuilder::GetInstance()->CreateSelectStatement($this, $Query->GetConditions(), $Query->GetOrderBy());
+        $ModelArray = SQLManager::GetInstance()->FillList($this, $QueryString, $Query->GetParameters());
         // if the query don't have any conditions we have loaded all objects and can save the complete list 
         // in chache
         if($Query->GetConditions()==''){
-            $this->ChacheModelArrayAll = $ModelArray;
-            $this->ChacheLoadedAll = true;
+                $this->Cache->SetModelArrayAll($ModelArray);
         }
         return $ModelArray;
     }
@@ -236,6 +217,7 @@ class ModelTable {
 
     /**
      * Select all Models from the database.
+     * 
      * @return ModelArray 
      */
     public function SelectAll(){
@@ -255,39 +237,11 @@ class ModelTable {
         $PrimaryKey = $Object->GetPrimaryKey();
         If(empty($PrimaryKey)){
             // insert into database
-            $Insert = SQLBuilder::CreateInsertStatement($this, $Object);
-            $PrimaryKey = SQLManager::InsertWithParameters($Insert['SQL'],$Insert['Parameters']);
+            $Insert = SQLBuilder::GetInstance()->CreateInsertStatement($this, $Object);
+            $PrimaryKey = SQLManager::GetInstance()->InsertWithParameters($Insert['SQL'],$Insert['Parameters']);
             // update primarykey in object
             $Object->SetFieldData($this->GetPrimaryKeyName(),$PrimaryKey);
-
-            // update Foreign Objects that are in cache
-            $Helper = $this->GetFieldDefinitionHelper();
-            foreach($Helper->GetFieldList() as $FieldName){
-                if($Helper->IsTypeForeignKey($FieldName)){
-                    $ForeignKey = $Object->GetFieldData($FieldName);
-                    if(isset($ForeignKey)&&$ForeignKey!=0){
-                        
-                        $ForeignModelTable = $Helper->GetModelTable($FieldName);
-                        $ForeignHelper = $ForeignModelTable->GetFieldDefinitionHelper();
-                        // find data field from type ManyForeignObjects that have a reference to this model table
-                        foreach($ForeignHelper->GetManyForeignObjectsFieldList() as $ForeignFieldName){
-                            if($ForeignHelper->GetModelTableName($ForeignFieldName)==$this->GetModelTableName()
-                                    && $ForeignHelper->GetForeignKeyFieldName($ForeignFieldName)==$FieldName){
-                                
-                                $ForeignObject = $ForeignModelTable->LoadFromCacheByPrimaryKey($ForeignKey);
-                                if($ForeignObject!=null){
-                                    // add primary key from inserted object to list
-                                    $Old = $ForeignObject->GetFieldData($ForeignFieldName);
-                                    $New = $Old . ',' . $PrimaryKey;
-                                    $ForeignObject->SetFieldData($ForeignFieldName, $New);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            $this->StoreInCache($Object);
+            $this->GetCache()->Insert($Object);
             return $PrimaryKey;
         }
         else {
@@ -304,8 +258,8 @@ class ModelTable {
         $PrimaryKey = $Object->GetPrimaryKey();
         if(!empty($PrimaryKey)){
                 // create update statement
-                $Update = SQLBuilder::CreateUpdateStatement($this, $Object);
-                return SQLManager::UpdateWithParameters($Update['SQL'], $Update['Parameters']);
+                $Update = SQLBuilder::GetInstance()->CreateUpdateStatement($this, $Object);
+                return SQLManager::GetInstance()->UpdateWithParameters($Update['SQL'], $Update['Parameters']);
         }
         else {
             throw new Exception('Primary key isn\'t set, can\'t update');
@@ -319,37 +273,12 @@ class ModelTable {
     public function Delete(Model $Object){
         $PrimaryKey = $Object->GetPrimaryKey();
         if($PrimaryKey!=null){
-            $QueryString = SQLBuilder::CreateDeleteStatement($this);
+            $QueryString = SQLBuilder::GetInstance()->CreateDeleteStatement($this);
             $Parameters = array();
             array_Push($Parameters, $PrimaryKey);
-            SQLManager::DeleteWithParameters($QueryString, $Parameters);
+            SQLManager::GetInstance()->DeleteWithParameters($QueryString, $Parameters);
+            $this->GetCache()->Delete($Object);
 
-            // update foreign objects
-            $Helper = $this->GetFieldDefinitionHelper();
-            
-            foreach($Helper->GetFieldList() as $FieldName){
-                if($Helper->IsTypeForeignKey($FieldName)){
-                    $ForeignModelTable =  $Helper->GetModelTable($FieldName);
-                    $ForeignKey = $Object->GetFieldData($FieldName);
-                    $ForeignObject = $ForeignModelTable->LoadFromCacheByPrimaryKey($ForeignKey);
-                    // if object exist in cache and needs to be updated
-                    if($ForeignObject!=null){
-                         // look through foreign model
-                        $ForeignHelper = $ForeignModelTable->GetFieldDefinitionHelper();
-                        foreach($ForeignHelper->GetManyForeignObjectsFieldList() as $ForeignModelTableFieldName){
-                            // searching for a ManyForeignObjects field with ForeignKey reference to this field
-                            if($ForeignHelper->GetModelTableName($ForeignModelTableFieldName) == $this->GetModelTableName()
-                                    && $ForeignHelper->GetForeignKeyFieldName($ForeignModelTableFieldName) == $FieldName){
-                                $OldKeys = $ForeignObject->GetFieldData($ForeignModelTableFieldName);
-                                // delete from old keys
-                                $ForeignObject->SetFieldData($ForeignModelTableFieldName, str_replace($PrimaryKey, '', $OldKeys));
-                                break;
-
-                            }
-                        }
-                    }
-                }
-            }
         }
         else {
             throw new Exception('Can\'t delete model cause it has no primary key.');
@@ -362,7 +291,7 @@ class ModelTable {
      * @return ModelArray 
      */
     public function SelectByPrimaryKeys(array $PrimaryKeys){
-        $Values =  SQLBuilder::CreateWhereStatementByPrimaryKeys($this, $PrimaryKeys);
+        $Values =  SQLBuilder::GetInstance()->CreateWhereStatementByPrimaryKeys($this, $PrimaryKeys);
         $Query = new Query($this->GetModelTableName());
         $Query->SetConditions($Values['SQL']);
         foreach($Values['Parameters'] as $Parameter){
@@ -379,7 +308,7 @@ class ModelTable {
      * @return ModelArray 
      */
     public function SelectByForeignKeys($FieldName,array $Keys){
-        $InStatementResult = SQLBuilder::CreateInStatementForKeys($this, $FieldName, $Keys);
+        $InStatementResult = SQLBuilder::GetInstance()->CreateInStatementForKeys($this, $FieldName, $Keys);
         $Query = new Query($this->GetModelTableName());
         $Query->SetConditions("WHERE " . $InStatementResult['SQL'] . " ");
         foreach($InStatementResult['Parameters'] as $Parameter){
@@ -394,26 +323,11 @@ class ModelTable {
      * @return Model 
      */
     public function SelectByPrimaryKey($PrimaryKey){
-        $Conditions = SQLBuilder::CreateWhereStatementByPrimaryKey($this);
+        $Conditions = SQLBuilder::GetInstance()->CreateWhereStatementByPrimaryKey($this);
         $Query = new Query($this->GetModelTableName());
         $Query->SetConditions($Conditions);
         $Query->AddParameter($PrimaryKey);
         return $this->SelectSingle($Query);
-    }
-    
-    /**
-     * Loads a Model from cache by its primary key.
-     * @param string $PrimaryKey
-     * @return Model 
-     */
-    public function LoadFromCacheByPrimaryKey($PrimaryKey){
-        if(!is_string($PrimaryKey)&&!is_int($PrimaryKey)){
-            throw new Exception('primary key must be a string or int');
-        }
-        if(isset($this->Cache[$PrimaryKey])){
-            return $this->Cache[$PrimaryKey]['Instance'];
-        }
-        return null;
     }
     
     /**
@@ -430,7 +344,7 @@ class ModelTable {
         }
         else{
             // search in cache
-            $CacheInstance = $this->LoadFromCacheByPrimaryKey($PrimaryKey);
+            $CacheInstance = $this->GetCache()->LoadByPrimaryKey($PrimaryKey);
             if($CacheInstance!=null){
                 return $CacheInstance;
             }
@@ -454,7 +368,7 @@ class ModelTable {
         foreach($Keys as $Key){
             if(!empty($Key)){
                 // search in cache
-                $Item = $this->LoadFromCacheByPrimaryKey($Key);
+                $Item = $this->GetCache()->LoadByPrimaryKey($Key);
                 // mark for loading later
                 if($Item==null){
                     array_push($LoadKeys, $Key);
@@ -480,12 +394,10 @@ class ModelTable {
      *  @return ModelArray
      */
     public function LoadAll(){
-        if(!$this->ChacheLoadedAll) {
-            $this->SelectAll();
+        if(!$this->GetCache()->IsLoadedAll()) {
+            return $this->SelectAll();
         }
-        return $this->ChacheModelArrayAll;
+        return $this->GetCache()->GetModelArrayAll();
     }
     
 }
-
-?>

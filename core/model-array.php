@@ -662,5 +662,3 @@ class ModelArray extends ArrayObject
     }
 
 }
-
-?>

@@ -36,4 +36,3 @@ class ViewManager {
         $BaseMasterPage = new MasterPage($MasterPagePath, $View);
     }
 }
-?>

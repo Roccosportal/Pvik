@@ -1,0 +1,12 @@
+[Include] /var/www/Pvik/library/pvik/core/log.php
+[Info] Loaded: ~/configs/default-config.php,~/configs/config.php
+[Include] /var/www/Pvik/library/pvik/web/error-manager.php
+[Include] /var/www/Pvik/library/pvik/web/route-manager.php
+[Include] /var/www/Pvik/library/pvik/web/request.php
+[Include] /var/www/Pvik/library/pvik/utils/key-value-array.php
+[Include] /var/www/Pvik/library/pvik/web/controller-manager.php
+[Include] /var/www/Pvik/library/pvik/web/controller.php
+[Include] /var/www/Pvik/application/controllers/admin/test-controller.php
+Executing action: TestAction
+Executing view: /var/www/Pvik/application/views/admin/test/test.php
+[Include] /var/www/Pvik/library/pvik/web/view.php

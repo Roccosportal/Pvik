@@ -1,9 +1,10 @@
 <?php
 
+namespace Pvik\Utils;
+
 /**
  * A class that assigns a key to a value.
  */
-namespace Pvik\Utils;
 Class KeyValuePair {
 
     /**

@@ -1,14 +1,18 @@
 <?php
+
 namespace Pvik\Utils;
+
 /**
- * Class that can contain errors.
+ * Class that can contains the validation state and errors if occured.
  */
 class ValidationState {
+
     /**
      * Indicates if this class has errors.
      * @var bool 
      */
     protected $Valid;
+
     /**
      * Contains the errors.
      * @var KeyValueArray 
@@ -18,7 +22,7 @@ class ValidationState {
     /**
      * 
      */
-    public function __construct(){
+    public function __construct() {
         $this->Valid = true;
         $this->Errors = new KeyValueArray();
     }
@@ -28,7 +32,7 @@ class ValidationState {
      * @param string $Field
      * @param string $Message 
      */
-    public function SetError($Field, $Message){
+    public function SetError($Field, $Message) {
         $this->Valid = false;
         $this->Errors->Set($Field, $Message);
     }
@@ -38,7 +42,7 @@ class ValidationState {
      * @param string $Field
      * @return string 
      */
-    public function GetError($Field){
+    public function GetError($Field) {
         return $this->Errors->Get($Field);
     }
 
@@ -46,7 +50,8 @@ class ValidationState {
      * Checks if this objects contains errors.
      * @return bool 
      */
-    public function IsValid(){
+    public function IsValid() {
         return $this->Valid;
     }
+
 }

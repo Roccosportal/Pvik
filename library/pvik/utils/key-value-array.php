@@ -1,8 +1,10 @@
 <?php
+
+namespace Pvik\Utils;
+
 /**
  * A simple associative array
  */
-namespace Pvik\Utils;
 Class KeyValueArray {
 
     /**
@@ -11,6 +13,9 @@ Class KeyValueArray {
      */
     protected $KeyValuePairs = null;
 
+    /**
+     * 
+     */
     public function __construct() {
         $this->KeyValuePairs = array();
     }
@@ -25,7 +30,7 @@ Class KeyValueArray {
             $KeyValuePair = new KeyValuePair($Key, $Value);
             array_push($this->KeyValuePairs, $KeyValuePair);
         } else {
-            throw new Exception('The key already exists: ' . $Key);
+            throw new \Exception('The key already exists: ' . $Key);
         }
     }
 
@@ -40,7 +45,7 @@ Class KeyValueArray {
             if ($Pair != null) {
                 $Pair->SetValue($Value);
             } else {
-                throw new Exception('Unexpected error caused.');
+                throw new \Exception('Unexpected error caused.');
             }
         } else {
             $this->Add($Key, $Value);
@@ -55,7 +60,7 @@ Class KeyValueArray {
         if ($this->ContainsKey($Key)) {
             unset($this->KeyValuePairs[$Key]);
         } else {
-            throw new Exception('The key doesn\'t exists: ' . $Key);
+            throw new \Exception('The key doesn\'t exists: ' . $Key);
         }
     }
 

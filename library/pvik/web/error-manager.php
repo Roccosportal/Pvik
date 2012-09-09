@@ -1,27 +1,48 @@
 <?php
+
 namespace Pvik\Web;
+
 use Pvik\Core\Config;
 use Pvik\Core\Path;
+
+/**
+ * Manages errors and show an error page if a exception is uncaptured
+ */
 class ErrorManager {
-    public static function Init(){
-        set_error_handler( array( '\\Pvik\Web\\ErrorManager', 'CaptureError' ) );
-        set_exception_handler(array( '\\Pvik\Web\\ErrorManager', 'CaptureException'));
+
+    /**
+     * Initialize the error manager
+     */
+    public static function Init() {
+        set_error_handler(array('\\Pvik\Web\\ErrorManager', 'CaptureError'));
+        set_exception_handler(array('\\Pvik\Web\\ErrorManager', 'CaptureException'));
     }
-    
+
+    /**
+     * Captures a php error
+     * @param type $errno
+     * @param type $errstr
+     * @param type $errfile
+     * @param type $errline
+     * @throws \ErrorException
+     */
     public static function CaptureError($errno, $errstr, $errfile, $errline) {
         throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
     }
-    
-    
+
+    /**
+     * Captures a non captured exception and shows an error page
+     * @param \Exception $Exception
+     */
     public static function CaptureException(\Exception $Exception) {
         // delete output buffer and ignore it
-            ob_get_clean();
-            self::ShowErrorPage($Exception);
+        ob_get_clean();
+        self::ShowErrorPage($Exception);
     }
-    
+
     /**
      * Tries to show an error page for an exception.
-     * @param Exception $Exception 
+     * @param \Exception $Exception 
      */
     public static function ShowErrorPage(\Exception $Exception) {
         try {
@@ -49,17 +70,12 @@ class ErrorManager {
 
     /**
      * Executes the error page file.
-     * @param Exception $Exception
+     * @param \Exception $Exception
      * @param type $File 
      */
     protected static function ExecuteErrorPage(\Exception $Exception, $File) {
         require($File);
     }
 
-    
 }
- 
 
-
-
-    

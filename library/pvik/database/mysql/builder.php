@@ -1,18 +1,17 @@
 <?php
 
-//Core::Depends('~/core/sql-builder.php');
+namespace Pvik\Database\MYSQL;
+
+use Pvik\Database\Generic\ModelTable;
 
 /**
  * Builds sql statements according to mysql sql.
  */
-namespace Pvik\Database\MYSQL;
-use Pvik\Database\Generic\ModelTable;
 class Builder extends \Pvik\Database\SQL\Builder {
 
-
-     public function __construct(){
-                $this->QuoteSign = '"';
-     }
+    public function __construct() {
+        $this->QuoteSign = '"';
+    }
 
     /**
      * Creates a select statement.

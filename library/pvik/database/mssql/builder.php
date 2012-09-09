@@ -1,76 +1,77 @@
 <?php
 
+namespace Pvik\Database\MSSQL;
+
+use Pvik\Database\Generic\ModelTable;
 
 /**
  * Builds sql statements according to mssql sql.
  */
-namespace Pvik\Database\MSSQL;
-use Pvik\Database\Generic\ModelTable;
 class Builder extends \Pvik\Database\SQL\Builder {
 
-        public function __construct() {
-                $this->QuoteSign = "'";
+    public function __construct() {
+        $this->QuoteSign = "'";
+    }
+
+    /**
+     * Creates a select statement.
+     * @param ModelTable $ModelTable
+     * @param string $Conditions
+     * @param string $OrderBy
+     * @return string 
+     */
+    public function CreateSelectStatement(ModelTable $ModelTable, $Conditions, $OrderBy) {
+        $SQL = "";
+        $SQL .= $this->CreateSelectPart($ModelTable);
+        $SQL .= " ";
+        $SQL .= $Conditions;
+        $SQL .= " ";
+        $SQL .= " ";
+        $SQL .= $OrderBy;
+        return $SQL;
+    }
+
+    /**
+     * Creates the select header.
+     * @param ModelTable $ModelTable
+     * @return string 
+     */
+    protected function CreateSelectPart(ModelTable $ModelTable) {
+        $SQL = "SELECT ";
+        $Count = 1;
+        $Helper = $ModelTable->GetFieldDefinitionHelper();
+        foreach ($Helper->GetFieldList() as $FieldName) {
+            switch ($Helper->GetFieldType($FieldName)) {
+                case "Normal":
+                case "PrimaryKey":
+                case "ForeignKey":
+                    if ($Count > 1) {
+                        // add , at the end
+                        $SQL .= ", ";
+                    }
+                    $SQL .= $this->SQLAttribute($ModelTable, $FieldName);
+                    $Count++;
+                    break;
+                case "ManyForeignObjects":
+                    if ($Count > 1) {
+                        // add , at the end
+                        $SQL .= ", ";
+                    }
+                    $ForeignModelTable = $Helper->GetModelTable($FieldName);
+                    // generate group_conact
+                    $SQL .= " " . $FieldName . " = replace ((SELECT " . $this->SQLAttribute($ForeignModelTable, $ForeignModelTable->GetPrimaryKeyName(), "[data()]") .
+                            " FROM " . $ForeignModelTable->GetTableName() .
+                            " WHERE  " . $ForeignModelTable->GetTableName() . "." . $Helper->GetForeignKeyFieldName($FieldName) . " = " . $ModelTable->GetTableName() . "." . $ModelTable->GetPrimaryKeyName() .
+                            " FOR xml path('')), ' ', ',') ";
+
+                    $Count++;
+                    break;
+            }
         }
+        $SQL .= " FROM " . $ModelTable->GetTableName();
 
-        /**
-         * Creates a select statement.
-         * @param ModelTable $ModelTable
-         * @param string $Conditions
-         * @param string $OrderBy
-         * @return string 
-         */
-        public function CreateSelectStatement(ModelTable $ModelTable, $Conditions, $OrderBy) {
-                $SQL = "";
-                $SQL .= $this->CreateSelectPart($ModelTable);
-                $SQL .= " ";
-                $SQL .= $Conditions;
-                $SQL .= " ";
-                $SQL .= " ";
-                $SQL .= $OrderBy;
-                return $SQL;
-        }
-
-        /**
-         * Creates the select header.
-         * @param ModelTable $ModelTable
-         * @return string 
-         */
-        protected function CreateSelectPart(ModelTable $ModelTable) {
-                $SQL = "SELECT ";
-                $Count = 1;
-                $Helper = $ModelTable->GetFieldDefinitionHelper();
-                foreach ($Helper->GetFieldList() as $FieldName) {
-                        switch ($Helper->GetFieldType($FieldName)) {
-                                case "Normal":
-                                case "PrimaryKey":
-                                case "ForeignKey":
-                                        if ($Count > 1) {
-                                                // add , at the end
-                                                $SQL .= ", ";
-                                        }
-                                        $SQL .= $this->SQLAttribute($ModelTable, $FieldName);
-                                        $Count++;
-                                        break;
-                                case "ManyForeignObjects":
-                                        if ($Count > 1) {
-                                                // add , at the end
-                                                $SQL .= ", ";
-                                        }
-                                        $ForeignModelTable = $Helper->GetModelTable($FieldName);
-                                        // generate group_conact
-                                        $SQL .= " " . $FieldName . " = replace ((SELECT " . $this->SQLAttribute($ForeignModelTable, $ForeignModelTable->GetPrimaryKeyName(), "[data()]") .
-                                                " FROM " . $ForeignModelTable->GetTableName() .
-                                                " WHERE  " . $ForeignModelTable->GetTableName() . "." . $Helper->GetForeignKeyFieldName($FieldName) . " = " . $ModelTable->GetTableName() . "." . $ModelTable->GetPrimaryKeyName() .
-                                                " FOR xml path('')), ' ', ',') ";
-
-                                        $Count++;
-                                        break;
-                        }
-                }
-                $SQL .= " FROM " . $ModelTable->GetTableName();
-
-                return $SQL;
-        }
+        return $SQL;
+    }
 
     /**
      * Creates a sql attribute part.

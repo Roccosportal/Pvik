@@ -11,12 +11,12 @@ class MasterPage {
     protected $View = null;
     /**
      * Contains the path to the master page view.
-     * @var type 
+     * @var string 
      */
     protected $MasterPagePath;
     /**
      * Contains the view data from the view.
-     * @var type 
+     * @var \Pvik\Utils\KeyValueArray 
      */
     protected $ViewData = null;
 

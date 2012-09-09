@@ -1,10 +1,12 @@
 <?php
+
 namespace Pvik\Core;
+
 use Pvik\Core\Config;
 use Pvik\Core\Path;
+
 /**
  * A class to handle the log.
- * Source code must be in this file because very basic core functions insists on that.
  */
 class Log {
 
@@ -12,7 +14,7 @@ class Log {
      * Contains the instance of an Log obejcet.
      * @var Log 
      */
-    protected static $Log = null;
+    protected static $Instance = null;
 
     /**
      * Contains an array of the log lines.
@@ -26,6 +28,9 @@ class Log {
      */
     protected $LogFileHandle = null;
 
+    /**
+     * 
+     */
     public function __construct() {
         $this->LogTrace = array();
         $date = new \DateTime();
@@ -55,10 +60,10 @@ class Log {
      */
     public static function WriteLine($Message) {
         if (Config::$Config['Log']['On'] == true) {
-            If (self::$Log == null) {
-                self::$Log = new Log();
+            If (self::$Instance == null) {
+                self::$Instance = new Log();
             }
-            self::$Log->Write($Message . "\n");
+            self::$Instance->Write($Message . "\n");
         }
     }
 
@@ -69,8 +74,8 @@ class Log {
      */
     public static function GetTrace() {
         $TraceString = "";
-        If (self::$Log != null) {
-            $TraceString = self::$Log->GetTraceString();
+        If (self::$Instance != null) {
+            $TraceString = self::$Instance->GetTraceString();
         }
         return $TraceString;
     }

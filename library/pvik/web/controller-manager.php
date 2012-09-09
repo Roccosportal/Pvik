@@ -7,7 +7,7 @@ use Pvik\Core\Log;
 use Pvik\Core\Config;
 
 /**
- * This static class can run a controller and contains useful funtions for a controller.
+ * This static class starts a controller.
  */
 class ControllerManager {
 
@@ -22,7 +22,7 @@ class ControllerManager {
         if ($ControllerClassName[0] !== '\\') {
             $ControllerClassName = Config::$Config['DefaultNamespace'] . Config::$Config['DefaultNamespaceControllers'] . '\\' . $ControllerClassName;
         }
-        
+
         $ControllerInstance = new $ControllerClassName($Request, $ControllerName);
         /* @var $ControllerInstance \Pvik\Web\Controller */
         $ActionFunctionName = $ActionName . 'Action';

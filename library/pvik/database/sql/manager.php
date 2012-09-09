@@ -1,16 +1,21 @@
 <?php
-/**
- * Class that refers to the right function depending on which database is selected.
- */
+
 namespace Pvik\Database\SQL;
 use Pvik\Core\Config;
 use Pvik\Core\Log;
+/**
+ * Runs sql statements.
+ */
 abstract class Manager {
+      /**
+     * Contains the current instance of a manager according to the selected database type.
+     * @var Manager 
+     */
     protected static $Instance = null;
     
     /**
      * Get the current instance of the sql manager
-     * @return SQLManager 
+     * @return Manager 
      */
     public static function GetInstance(){
             if(self::$Instance == null){
@@ -159,11 +164,11 @@ abstract class Manager {
     
 
     /**
-     * Creates a ModelArray from a select statemet
-     * @param ModelTable $ModelTable
+     * Creates a EntityArray from a select statemet
+     * @param \Pvik\Database\Generic\ModelTable $ModelTable
      * @param string $QueryString
      * @param array $Parameters
-     * @return ModelArray 
+     * @return \Pvik\Database\Generic\EntityArray 
      */
     public function FillList(\Pvik\Database\Generic\ModelTable $ModelTable, $QueryString, array $Parameters) {
         $Result = $this->SelectWithParameters($QueryString, $Parameters);

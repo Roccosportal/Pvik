@@ -1,44 +1,77 @@
 <?php
 
 namespace Pvik\Web;
-class Request {
-    
-    protected $Url;
-    
-    protected $Parameters;
-    
-    protected $Route;
-    
-    protected $CurrentController;
-   
-    public function __construct(){
-        $this->Parameters = new \Pvik\Utils\KeyValueArray();
 
+/**
+ * Contains data of the current web request.
+ */
+class Request {
+
+    /**
+     * Contains the current url.
+     * @var string 
+     */
+    protected $Url;
+
+    /**
+     * Contains the parameters from the current url
+     * @var \Pvik\Utils\KeyValueArray 
+     */
+    protected $Parameters;
+
+    /**
+     * Contains the current route.
+     * @var array 
+     */
+    protected $Route;
+
+    /**
+     * 
+     */
+    public function __construct() {
+        $this->Parameters = new \Pvik\Utils\KeyValueArray();
     }
-    
-    public function GetUrl(){
+
+    /**
+     * Returns the current url
+     * @return string
+     */
+    public function GetUrl() {
         return $this->Url;
     }
-    
-    public function SetUrl($Url){
+
+    /**
+     * Sets the current url
+     * @param string $Url
+     */
+    public function SetUrl($Url) {
         $this->Url = $Url;
     }
-    
-    public function SetRoute($Route){
+
+    /**
+     * Sets the current route.
+     * @param type $Route
+     */
+    public function SetRoute(array $Route) {
         $this->Route = $Route;
     }
-    
-    public function GetRoute(){
+
+    /**
+     * Returns the current route
+     * @return array
+     */
+    public function GetRoute() {
         return $this->Route;
     }
-    
+
     /**
+     * Returns the current parameters from the url
      * @return \Pvik\Utils\KeyValueArray
      */
-    public function GetParameters(){
+    public function GetParameters() {
         return $this->Parameters;
     }
-    
+
     /**
      * Returns a $_POST value or null.
      * @param string $Key
@@ -54,13 +87,18 @@ class Request {
     /**
      * Checks if a $_POST value is set.
      * @param string $Key
-     * @return string 
+     * @return bool 
      */
     public function IsPOST($Key) {
-         return isset($_POST[$Key]);
+        return isset($_POST[$Key]);
     }
-    
-    public function IsGET($Key){
+
+    /**
+     * Checks if a $_GET value is set.
+     * @param string $Key
+     * @return bool 
+     */
+    public function IsGET($Key) {
         return isset($_GET[$Key]);
     }
 
@@ -75,11 +113,10 @@ class Request {
         }
         return null;
     }
-    
-    
+
     /**
      * Is set to true if a sessions was started.
-     * @var type 
+     * @var bool 
      */
     protected static $SessionStarted = false;
 
@@ -93,5 +130,5 @@ class Request {
             self::$SessionStarted = true;
         }
     }
-       
+
 }

@@ -1,6 +1,6 @@
 Pvik
 
-Version: 3.0.1
+Version: 3.0.2
 License: license.txt
 Date: 12-01-2013 (dd-mm-yyyy)
 

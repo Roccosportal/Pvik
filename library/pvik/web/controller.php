@@ -6,6 +6,7 @@ use Pvik\Utils\KeyValueArray;
 use Pvik\Web\ControllerManager;
 use Pvik\Core\Config;
 use Pvik\Core\Path;
+use Pvik\Core\Log;
 
 /**
  * This class contains the logic for a web site.

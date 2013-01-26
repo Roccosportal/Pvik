@@ -73,8 +73,7 @@ class Controller {
         if ($Folder == null) {
             $Folder = Config::$Config['DefaultViewsFolder'];
         }
-        //$ViewPath = ControllerManager::GetViewPathByAction($ActionName, $Folder);
-        $ViewPath = Path::RealPath($Folder . Path::ConvertNameToPath($this->ControllerName) . '/' . Path::ConvertNameToPath($ActionName) . '.php');
+        $ViewPath = Path::RealPath($Folder . $this->ControllerName . '/' . $ActionName . '.php');
         \Pvik\Core\Log::WriteLine('Executing view: ' . $ViewPath);
         $View = new View($ViewPath, $this);
     }

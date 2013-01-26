@@ -26,16 +26,10 @@ class Core {
 
     /**
      * Loads the given configs into \Pvik\Core\Config.
-     * If no config paths are given it loads the default path.
-     * Passes the namespace associations to the class loaders
      * @param array $ConfigPaths
      * @return \Pvik\Core\Core
      */
-    public function LoadConfig(array $ConfigPaths = array()) {
-        if (empty($ConfigPaths)) {
-            // set default config paths
-            $ConfigPaths = array('~/application/configs/default-config.php', '~/application/configs/config.php');
-        }
+    public function LoadConfig(array $ConfigPaths) {
         foreach ($ConfigPaths as $ConfigPath) {
             Config::Load(Path::RealPath($ConfigPath));
         }

@@ -47,6 +47,7 @@ class ClassLoader {
                 break;
             }
         }
+	$Path = str_replace('\\', '/', $Name);
         $Path = str_replace('//', '/', $Path);
         $Path = Path::RealPath($Path . '.php');
         if (file_exists($Path)) {

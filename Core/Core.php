@@ -3,7 +3,6 @@
 namespace Pvik\Core;
 
 use Pvik\Core\Path;
-use Pvik\Core\ClassLoader;
 use Pvik\Core\Config;
 use Pvik\Web\RouteManager;
 use Pvik\Web\ErrorManager;
@@ -13,24 +12,7 @@ use Pvik\Web\ErrorManager;
  */
 class Core {
 
-    /**
-     * Initializes the core.
-     * Includes some always required classes.
-     * Initializes the class loader.
-     * Initializes the \Pvik\Core\Path class
-     * @return \Pvik\Core\Core
-     */
-    public function Init() {
-        date_default_timezone_set('UTC');
-        $CorePath = dirname(__FILE__) . '/';
-        require $CorePath . 'class-loader.php';
-        require $CorePath . 'path.php';
-        require $CorePath . 'config.php';
-        $this->ClassLoader = ClassLoader::GetInstance()->Init();
-        Path::Init();
-        return $this;
-    }
-
+  
     /**
      * Initializes the web functionalities.
      * Initializes the error manager.
@@ -56,11 +38,6 @@ class Core {
         }
         foreach ($ConfigPaths as $ConfigPath) {
             Config::Load(Path::RealPath($ConfigPath));
-        }
-        if (isset(Config::$Config['NamespaceAssociations']) && is_array(Config::$Config['NamespaceAssociations'])) {
-            foreach (Config::$Config['NamespaceAssociations'] as $Namespace => $Path) {
-                ClassLoader::GetInstance()->SetNamespaceAssociation($Namespace, $Path);
-            }
         }
         Log::WriteLine('[Info] Loaded: ' . implode(",", $ConfigPaths));
         return $this;

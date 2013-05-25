@@ -1,6 +1,6 @@
 <?php
 
-namespace Pvik\Database\Generic;
+namespace Pvik\Database\ORM;
 
 /**
  * A helper class for the field definition of model tables

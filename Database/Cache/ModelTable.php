@@ -21,21 +21,21 @@ class ModelTable {
 
     /**
      * Contains the EntityArray of all Entities if all are loaded.
-     * @var \Pvik\Database\Generic\EntityArray
+     * @var \Pvik\Database\ORM\EntityArray
      */
     protected $EntityArrayAll;
 
     /**
      * Contains the ModelTable for this Cache
-     * @var \Pvik\Database\Generic\ModelTable 
+     * @var \Pvik\Database\ORM\ModelTable 
      */
     protected $ModelTable;
 
     /**
      * 
-     * @param \Pvik\Database\Generic\ModelTable $ModelTable
+     * @param \Pvik\Database\ORM\ModelTable $ModelTable
      */
-    public function __construct(\Pvik\Database\Generic\ModelTable $ModelTable) {
+    public function __construct(\Pvik\Database\ORM\ModelTable $ModelTable) {
         $this->ModelTable = $ModelTable;
         $this->Cache = array();
         $this->IsLoadedAll = false;
@@ -44,10 +44,10 @@ class ModelTable {
 
     /**
      * Returns all instances that are in the cache
-     * @return \Pvik\Database\Generic\EntityArray
+     * @return \Pvik\Database\ORM\EntityArray
      */
     public function GetAllCacheInstances() {
-        $Instances = new \Pvik\Database\Generic\EntityArray();
+        $Instances = new \Pvik\Database\ORM\EntityArray();
         $Instances->SetModelTable($this->ModelTable);
         foreach ($this->Cache as $Value) {
             $Instances->append($Value['Instance']);
@@ -57,9 +57,9 @@ class ModelTable {
 
     /**
      * Stores a instance of model into the cache.
-     * @param \Pvik\Database\Generic\Entity $Instance 
+     * @param \Pvik\Database\ORM\Entity $Instance 
      */
-    public function Store(\Pvik\Database\Generic\Entity $Instance) {
+    public function Store(\Pvik\Database\ORM\Entity $Instance) {
         if ($Instance != null) {
             $PrimaryKey = $Instance->GetPrimaryKey();
             if ($PrimaryKey != '') {
@@ -75,7 +75,7 @@ class ModelTable {
     /**
      * Loads a Model from cache by its primary key.
      * @param string $PrimaryKey
-     * @return \Pvik\Database\Generic\Entity 
+     * @return \Pvik\Database\ORM\Entity 
      */
     public function LoadByPrimaryKey($PrimaryKey) {
         if (!is_string($PrimaryKey) && !is_int($PrimaryKey)) {
@@ -97,7 +97,7 @@ class ModelTable {
 
     /**
      * Returns the list all entities if all are loaded into cache
-     * @return \Pvik\Database\Generic\EntityArray
+     * @return \Pvik\Database\ORM\EntityArray
      */
     public function GetEntityArrayAll() {
         return $this->EntityArrayAll;
@@ -105,18 +105,18 @@ class ModelTable {
 
     /**
      * Set the list of all entities that are loaded into the cache
-     * @param \Pvik\Database\Generic\EntityArray $EntityArray
+     * @param \Pvik\Database\ORM\EntityArray $EntityArray
      */
-    public function SetEntityArrayAll(\Pvik\Database\Generic\EntityArray $EntityArray) {
+    public function SetEntityArrayAll(\Pvik\Database\ORM\EntityArray $EntityArray) {
         $this->IsLoadedAll = true;
         $this->EntityArrayAll = $EntityArray;
     }
 
     /**
      * Updates the cache.
-     * @param \Pvik\Database\Generic\Entity $Object
+     * @param \Pvik\Database\ORM\Entity $Object
      */
-    public function Insert(\Pvik\Database\Generic\Entity $Object) {
+    public function Insert(\Pvik\Database\ORM\Entity $Object) {
         // update Foreign Objects that are in cache
         $Helper = $this->ModelTable->GetFieldDefinitionHelper();
         foreach ($Helper->GetFieldList() as $FieldName) {
@@ -129,10 +129,10 @@ class ModelTable {
 
     /**
      * Updates the reference from entities to the object by the current foreign key for a field name
-     * @param \Pvik\Database\Generic\Entity $Object
+     * @param \Pvik\Database\ORM\Entity $Object
      * @param string $FieldName
      */
-    public function InsertForeignKeyReference(\Pvik\Database\Generic\Entity $Object, $FieldName) {
+    public function InsertForeignKeyReference(\Pvik\Database\ORM\Entity $Object, $FieldName) {
         //  get the key that refers to the foreign object (AuthorID  from a book)
         $Helper = $this->ModelTable->GetFieldDefinitionHelper();
         $ForeignKey = $Object->GetFieldData($FieldName);
@@ -159,9 +159,9 @@ class ModelTable {
 
     /**
      * Updates the cache.
-     * @param \Pvik\Database\Generic\Entity $Object 
+     * @param \Pvik\Database\ORM\Entity $Object 
      */
-    public function Delete(\Pvik\Database\Generic\Entity $Object) {
+    public function Delete(\Pvik\Database\ORM\Entity $Object) {
         // update foreign objects
         $Helper = $this->ModelTable->GetFieldDefinitionHelper();
 
@@ -174,10 +174,10 @@ class ModelTable {
 
     /**
      * Deletes the reference from entities to the object by the current foreign key for a field name
-     * @param \Pvik\Database\Generic\Entity $Object
+     * @param \Pvik\Database\ORM\Entity $Object
      * @param string $FieldName
      */
-    public function DeleteForeignKeyReference(\Pvik\Database\Generic\Entity $Object, $FieldName) {
+    public function DeleteForeignKeyReference(\Pvik\Database\ORM\Entity $Object, $FieldName) {
         $Helper = $this->ModelTable->GetFieldDefinitionHelper();
         $ForeignModelTable = $Helper->GetModelTable($FieldName);
         //  get the key that refers to the foreign object (AuthorID  from a book)

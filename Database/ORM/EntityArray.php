@@ -1,6 +1,6 @@
 <?php
 
-namespace Pvik\Database\Generic;
+namespace Pvik\Database\ORM;
 
 /**
  * A class that contains a list of Entites.

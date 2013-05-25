@@ -1,6 +1,6 @@
 <?php
 
-namespace Pvik\Database\MYSQL;
+namespace Pvik\Database\Adapter\MYSQL;
 
 use Pvik\Core\Log;
 
@@ -37,7 +37,7 @@ class Manager extends \Pvik\Database\SQL\Manager {
      * @param string $QueryString
      * @return mixed 
      */
-    public function ExecuteQueryString($QueryString) {
+    public function Execute($QueryString) {
         Log::WriteLine('Executing querystring: ' . $QueryString);
         $Result = mysql_query($QueryString);
         if (!$Result) {

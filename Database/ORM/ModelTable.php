@@ -1,10 +1,8 @@
 <?php
 
-namespace Pvik\Database\Generic;
+namespace Pvik\Database\ORM;
 
 use Pvik\Core\Config;
-use Pvik\Database\Generic\Query;
-use Pvik\Database\SQL\Builder;
 use Pvik\Database\SQL\Manager;
 
 /**
@@ -178,36 +176,36 @@ class ModelTable {
         return $this->FieldDefinitionHelper;
     }
 
-    /**
-     * Select a ModelArray from the database.
-     * @param Query $Query
-     * @return EntityArray 
-     */
-    public function Select(Query $Query) {
-        $QueryString = Builder::GetInstance()->CreateSelectStatement($this, $Query->GetConditions(), $Query->GetOrderBy());
-        $ModelArray = Manager::GetInstance()->FillList($this, $QueryString, $Query->GetParameters());
-        // if the query don't have any conditions we have loaded all objects and can save the complete list 
-        // in chache
-        if ($Query->GetConditions() == '') {
-            $this->Cache->SetEntityArrayAll($ModelArray);
-        }
-        return $ModelArray;
-    }
+//    /**
+//     * Select a ModelArray from the database.
+//     * @param Query $Query
+//     * @return EntityArray 
+//     */
+//    public function Select(Query $Query) {
+//        $QueryString = Builder::GetInstance()->CreateSelectStatement($this, $Query->GetConditions(), $Query->GetOrderBy());
+//        $ModelArray = Manager::GetInstance()->FillList($this, $QueryString, $Query->GetParameters());
+//        // if the query don't have any conditions we have loaded all objects and can save the complete list 
+//        // in chache
+//        if ($Query->GetConditions() == '') {
+//            $this->Cache->SetEntityArrayAll($ModelArray);
+//        }
+//        return $ModelArray;
+//    }
 
-    /**
-     * Select a single Model from the database.
-     * @param Query $Query
-     * @return Entity 
-     */
-    public function SelectSingle(Query $Query) {
-        $List = $this->Select($Query);
-        if ($List->count() > 0) {
-            // return first element
-            return $List[0];
-        } else {
-            return null;
-        }
-    }
+//    /**
+//     * Select a single Model from the database.
+//     * @param Query $Query
+//     * @return Entity 
+//     */
+//    public function SelectSingle(Query $Query) {
+//        $List = $this->Select($Query);
+//        if ($List->count() > 0) {
+//            // return first element
+//            return $List[0];
+//        } else {
+//            return null;
+//        }
+//    }
 
     /**
      * Select all Models from the database.
@@ -216,94 +214,63 @@ class ModelTable {
      */
     public function SelectAll() {
         // creating a new query without any conditions
-        $Query = new Query($this->GetModelTableName());
-        return $this->Select($Query);
+        $queryBuilder = $this->getEmptyQueryBuilder();
+        return $queryBuilder->select();
+    }
+    
+    public function getEmptySelectBuilder(){
+        return Query\Builder\Select::getEmptyInstance($this->GetModelTableName());
     }
 
-    /**
-     * Insert a Entity to the database and updates the cache.
-     * Returns the primary key.
-     * @param Entity $Object
-     * @return string 
-     */
-    public function Insert(Entity $Object) {
-        $PrimaryKey = $Object->GetPrimaryKey();
-        If (empty($PrimaryKey)) {
-            // insert into database
-            $Insert = Builder::GetInstance()->CreateInsertStatement($this, $Object);
-            $PrimaryKey = Manager::GetInstance()->InsertWithParameters($Insert['SQL'], $Insert['Parameters']);
-            // update primarykey in object
-            $Object->SetFieldData($this->GetPrimaryKeyName(), $PrimaryKey);
-            $this->GetCache()->Insert($Object);
-            return $PrimaryKey;
-        } else {
-            throw new \Exception('The primarykey of this object is already set and the object can\'t be inserted.');
-        }
-    }
+//    /**
+//     * Insert a Entity to the database and updates the cache.
+//     * Returns the primary key.
+//     * @param Entity $Object
+//     * @return string 
+//     */
+//    public function Insert(Entity $Object) {
+//        $PrimaryKey = $Object->GetPrimaryKey();
+//        If (empty($PrimaryKey)) {
+//            // insert into database
+//            $Insert = Builder::GetInstance()->CreateInsertStatement($this, $Object);
+//            $PrimaryKey = Manager::GetInstance()->InsertWithParameters($Insert['SQL'], $Insert['Parameters']);
+//            // update primarykey in object
+//            $Object->SetFieldData($this->GetPrimaryKeyName(), $PrimaryKey);
+//            $this->GetCache()->Insert($Object);
+//            return $PrimaryKey;
+//        } else {
+//            throw new \Exception('The primarykey of this object is already set and the object can\'t be inserted.');
+//        }
+//    }
 
-    /**
-     * Updates a Model on the database.
-     * @param Entity $Object
-     * @return mixed 
-     */
-    public function Update(Entity $Object) {
-        $PrimaryKey = $Object->GetPrimaryKey();
-        if (!empty($PrimaryKey)) {
-            // create update statement
-            $Update = Builder::GetInstance()->CreateUpdateStatement($this, $Object);
-            return Manager::GetInstance()->UpdateWithParameters($Update['SQL'], $Update['Parameters']);
-        } else {
-            throw new \Exception('Primary key isn\'t set, can\'t update');
-        }
-    }
-
-    /**
-     * Deletes a Entity from the database and updates the cache.
-     * @param Entity $Object 
-     */
-    public function Delete(Entity $Object) {
-        $PrimaryKey = $Object->GetPrimaryKey();
-        if ($PrimaryKey != null) {
-            $QueryString = Builder::GetInstance()->CreateDeleteStatement($this);
-            $Parameters = array();
-            array_Push($Parameters, $PrimaryKey);
-            Manager::GetInstance()->DeleteWithParameters($QueryString, $Parameters);
-            $this->GetCache()->Delete($Object);
-        } else {
-            throw new \Exception('Can\'t delete model cause it has no primary key.');
-        }
-    }
-
+ 
+//    /**
+//     * Deletes a Entity from the database and updates the cache.
+//     * @param Entity $Object 
+//     */
+//    public function Delete(Entity $Object) {
+//        $PrimaryKey = $Object->GetPrimaryKey();
+//        if ($PrimaryKey != null) {
+//            $builder = DeleteBuilder::getEmptyInstance($this->GetModelTableName());
+//            $builder->where($this->GetPrimaryKeyName() . '=%');
+//            $builder->addParameter($PrimaryKey);
+//            $builder->execute();
+//            $this->GetCache()->Delete($Object);
+//        } else {
+//            throw new \Exception('Can\'t delete model cause it has no primary key.');
+//        }
+//    }
+//
     /**
      * Select a EntityArray from database by primary keys.
      * @param array $PrimaryKeys
      * @return EntityArray 
      */
     public function SelectByPrimaryKeys(array $PrimaryKeys) {
-        $Values = Builder::GetInstance()->CreateWhereStatementByPrimaryKeys($this, $PrimaryKeys);
-        $Query = new Query($this->GetModelTableName());
-        $Query->SetConditions($Values['SQL']);
-        foreach ($Values['Parameters'] as $Parameter) {
-            $Query->AddParameter($Parameter);
-        }
-        return $this->Select($Query);
-    }
-
-    /**
-     * Select a EntityArray from database by foreign keys through a sql IN statement.
-     * Example: SELECT * FROM Books WHERE Books.AuthorID IN ('1', '2', '3')
-     * @param string $FieldName
-     * @param array $Keys
-     * @return EntityArray 
-     */
-    public function SelectByForeignKeys($FieldName, array $Keys) {
-        $InStatementResult = Builder::GetInstance()->CreateInStatementForKeys($this, $FieldName, $Keys);
-        $Query = new Query($this->GetModelTableName());
-        $Query->SetConditions("WHERE " . $InStatementResult['SQL'] . " ");
-        foreach ($InStatementResult['Parameters'] as $Parameter) {
-            $Query->AddParameter($Parameter);
-        }
-        return $this->Select($Query);
+        $queryBuilder = $this->getEmptySelectBuilder();
+        $queryBuilder->where($this->GetTableName() . '.' .$this->GetPrimaryKeyName(). ' IN (%s)');
+        $queryBuilder->addParameter($PrimaryKeys);
+        return $queryBuilder->select();
     }
 
     /**
@@ -312,11 +279,10 @@ class ModelTable {
      * @return Entity 
      */
     public function SelectByPrimaryKey($PrimaryKey) {
-        $Conditions = Builder::GetInstance()->CreateWhereStatementByPrimaryKey($this);
-        $Query = new Query($this->GetModelTableName());
-        $Query->SetConditions($Conditions);
-        $Query->AddParameter($PrimaryKey);
-        return $this->SelectSingle($Query);
+        $queryBuilder = $this->getEmptySelectBuilder();
+        $queryBuilder->where($this->GetTableName() . '.' . $this->GetPrimaryKeyName() . ' = %s');
+        $queryBuilder->addParameter($PrimaryKey);
+        return $queryBuilder->selectSingle();
     }
 
     /**
@@ -383,6 +349,24 @@ class ModelTable {
             return $this->SelectAll();
         }
         return $this->GetCache()->GetEntityArrayAll();
+    }
+    
+    
+    /**
+     * Creates a EntityArray from a select statemet result
+     * @param array $Parameters
+     * @return \Pvik\Database\ORM\EntityArray 
+     */
+    public function FillEntityArray($result) {
+        $List = new \Pvik\Database\ORM\EntityArray();
+        $List->SetModelTable($this);
+        while ($Data = Manager::GetInstance()->FetchAssoc($result)) {
+            $Classname = $this->GetEntityClassName();
+            $Model = new $Classname();
+            $Model->Fill($Data);
+            $List->append($Model);
+        }
+        return $List;
     }
 
 }

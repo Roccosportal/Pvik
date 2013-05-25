@@ -1,6 +1,6 @@
 <?php
 
-namespace Pvik\Database\Generic;
+namespace Pvik\Database\ORM;
 
 /**
  * Represents a row in a table as an object
@@ -23,7 +23,7 @@ class Entity {
      * Fills object with the given data array.
      * And stores the object to the cache
      * @param type $Data
-     * @return \Pvik\Database\Generic\Entity
+     * @return \Pvik\Database\ORM\Entity
      */
     public function Fill($Data = array()) {
         // fill this class with the data
@@ -61,16 +61,10 @@ class Entity {
     public function __get($FieldName) {
         $ModelTable = $this->GetModelTable();
         $Helper = $ModelTable->GetFieldDefinitionHelper();
-
-
         if ($Helper->FieldExists($FieldName)) {
             switch ($Helper->GetFieldType($FieldName)) {
                 case 'PrimaryKey':
-                    return $this->GetFieldData($FieldName);
-                    break;
                 case 'Normal':
-                    return $this->GetFieldData($FieldName);
-                    break;
                 case 'ForeignKey':
                     return $this->GetFieldData($FieldName);
                     break;
@@ -101,7 +95,11 @@ class Entity {
                     }
                     break;
             }
-        } else {
+        }
+        else if($this->FieldDataExists($FieldName)){
+           return $this->GetFieldData($FieldName);
+        }
+        else {
             throw new \Exception('Value ' . $FieldName . ' not found.');
         }
     }
@@ -157,8 +155,7 @@ class Entity {
      * @throws \Exception
      */
     public function GetPrimaryKey() {
-        $ModelTable = $this->GetModelTable();
-        $PrimaryKeyName = $ModelTable->GetPrimaryKeyName();
+        $PrimaryKeyName = $this->GetPrimaryKeyName();
         if ($PrimaryKeyName != null) {
             if ($this->FieldDataExists($PrimaryKeyName)) {
                 return $this->GetFieldData($PrimaryKeyName);
@@ -169,13 +166,45 @@ class Entity {
             throw new \Exception('The model ' . get_class($this) . ' has no primary key.');
         }
     }
+    
+    public function GetPrimaryKeyName(){
+        return $this->GetModelTable()->GetPrimaryKeyName();
+    }
 
     /**
      * Inserts an entity to the database.
      * @return string primary key
      */
     public function Insert() {
-        return $this->GetModelTable()->Insert($this);
+        $primaryKey = $this->GetPrimaryKey();
+        if (empty($primaryKey)) {
+            $insertBuilder = Query\Builder\Insert::getEmptyInstance($this->GetModelTableName());
+            $helper = $this->GetModelTable()->GetFieldDefinitionHelper();
+            foreach ($helper->GetFieldList() as $fieldName) {
+                switch ($helper->GetFieldType($fieldName)) {
+                    case 'Normal':
+                    case 'ForeignKey':
+                        $insertBuilder->set($fieldName, $this->GetFieldData($fieldName));
+                        break;
+                    case 'PrimaryKey':
+                        // only insert a value if it is a guid otherwise ignore
+                        // the primarykey will be set on the database
+                        if ($helper->IsGuid($fieldName)) {
+                             $insertBuilder->set($fieldName, Core::CreateGuid());
+
+                        }
+                        break;
+                }
+            }
+            $insertBuilder->execute();
+            $primaryKey = \Pvik\Database\SQL\Manager::GetInstance()->GetLastInsertedId();
+            // update primarykey in object
+            $this->SetFieldData($this->GetPrimaryKeyName(), $primaryKey);
+            $this->GetModelTable()->GetCache()->Insert($this);
+            return $primaryKey;
+        } else {
+            throw new \Exception('The primarykey of this object is already set and the object can\'t be inserted.');
+        }
     }
 
     /**
@@ -183,7 +212,24 @@ class Entity {
      * @return mixed
      */
     public function Update() {
-        return $this->GetModelTable()->Update($this);
+        $PrimaryKey = $this->GetPrimaryKey();
+        if (!empty($PrimaryKey)) {
+            $updateBuilder = Query\Builder\Update::getEmptyInstance($this->GetModelTableName());
+            $helper = $this->GetModelTable()->GetFieldDefinitionHelper();
+            foreach ($helper->GetFieldList() as $FieldName) {
+                switch ($helper->GetFieldType($FieldName)) {
+                    case 'Normal':
+                    case 'ForeignKey':
+                        $updateBuilder->set($FieldName, $this->GetFieldData($FieldName));
+                        break;
+                }
+            }
+            $updateBuilder->where($this->GetPrimaryKeyName() . '=%s');
+            $updateBuilder->addParameter($this->GetFieldData($this->GetPrimaryKeyName()));
+            return $updateBuilder->execute();
+        } else {
+            throw new \Exception('Primary key isn\'t set, can\'t update');
+        }
     }
 
     /**
@@ -191,7 +237,16 @@ class Entity {
      * @return mixed
      */
     public function Delete() {
-        return $this->GetModelTable()->Delete($this);
+        $PrimaryKey = $this->GetPrimaryKey();
+        if ($PrimaryKey != null) {
+            $builder = Query\Builder\Delete::getEmptyInstance($this->GetModelTableName());
+            $builder->where($this->GetPrimaryKeyName() . '=%s');
+            $builder->addParameter($PrimaryKey);
+            $builder->execute();
+            $this->GetModelTable()->GetCache()->Delete($this);
+        } else {
+            throw new \Exception('Can\'t delete model cause it has no primary key.');
+        }
     }
 
     /**

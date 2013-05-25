@@ -1,8 +1,14 @@
 <?php
 namespace Pvik\Database\ORM\Query\Builder;
-
+/**
+ * Represents a select query builder.
+ */
 class Select {
-    
+    /**
+     * Returns an empty instancce
+     * @param string $modelTableName
+     * @return \Pvik\Database\ORM\Query\Builder\Select
+     */
     public static function getEmptyInstance($modelTableName){
         $adapterClassName = \Pvik\Database\Adapter\Adapter::getAdapterClassName('ORM\Query\Builder\Select');
         if($adapterClassName){
@@ -10,42 +16,72 @@ class Select {
         }
         return new Select($modelTableName);
     }
-    
+    /**
+     * Contains the fields that should be selected.
+     * @var array 
+     */
     protected $fields = array();
     /**
      *
      * @var \Pvik\Database\ORM\ModelTable 
      */
     protected $modeTable = null;
-    
+    /**
+     * Contains the left join options
+     * @var array 
+     */
     protected $leftJoins = array();
-    
+    /**
+     * Contains the inner join options
+     * @var array 
+     */
     protected $innerJoins = array();
-    
+    /**
+     * Containers the group by fields
+     * @var array 
+     */
     protected $groupBys = array();
-    
+    /**
+     * Contains the order by statement
+     * @var string 
+     */
     protected $orderBy = null;
-    
+    /**
+     * Contains the limit
+     * @var int 
+     */
     protected $limit = null;
-     
+    /**
+     * Contains the offset
+     * @var type 
+     */
     protected $offset = null;
-    
+    /**
+     * Contains the statement and parameters for the where condition
+     * @var array 
+     */
     protected $where = array(
         'statement' => null,
         'parameters' => array(),
     );
-     
-    
-     public function addParameter($parameter){
+    /**
+     * Adds an parameter to the where condition
+     * @param type $parameter
+     */
+    public function addParameter($parameter){
         $this->where['parameters'][] = $parameter;
     }
-    
+    /**
+     * Sets the where condition statements
+     * @param string $where
+     */
     public function where($where){
         $this->where['statement'] = $where;
     }
-    
-  
-  
+    /**
+     * 
+     * @param string $modelTableName
+     */
     protected function __construct($modelTableName){
         if (!is_string($modelTableName)) {
             throw new \Exception('ModelTableName must be a string.');
@@ -53,14 +89,22 @@ class Select {
         $this->modelTable = \Pvik\Database\ORM\ModelTable::Get($modelTableName);
         $this->prepare();
     }
-    
+    /**
+     * Add a field to the select output
+     * @param type $field
+     */
     public function addField($field){
         $this->fields[$field] = array(
             'field' => $field
         );
     }
-    
-     public function addInnerJoin($table, $joinForeignKey = null, $alias = null){
+    /**
+     * Add a inner join
+     * @param string $table
+     * @param string $joinForeignKey
+     * @param string $alias
+     */
+    public function addInnerJoin($table, $joinForeignKey = null, $alias = null){
         $this->innerJoins[] = array(
             'table' => $table,
             'alias' => $alias,
@@ -68,7 +112,12 @@ class Select {
             'primaryKey' => $this->modelTable->GetPrimaryKeyName()
         );
     }
-    
+    /**
+     * Add a left join
+     * @param string $table
+     * @param string $joinForeignKey
+     * @param string $alias
+     */
     public function addLeftJoin($table, $joinForeignKey = null, $alias = null){
         $this->leftJoins[] = array(
             'table' => $table,
@@ -77,26 +126,39 @@ class Select {
             'primaryKey' => $this->modelTable->GetPrimaryKeyName()
         );
     }
-    
+    /**
+     * Add a group by field
+     * @param string $field
+     */
     public function addGroupBy($field){
         $this->groupBys[$field] = array(
             'field' => $field
         );
     }
-    
+    /**
+     * Set the order by statment
+     * @param string $orderBy
+     */
     public function orderBy($orderBy){
         $this->orderBy = $orderBy;
     }
-    
+    /**
+     * Set the limit.
+     * @param int $limit
+     */
     public function limit($limit){
         $this->limit = $limit;
     }
-    
+    /**
+     * Set the offset.
+     * @param int $offset
+     */
     public function offset($offset){
         $this->offset = $offset;
     }
-    
-    
+    /**
+     * Prepares the select query by the informations from the model table
+     */
     protected function prepare(){
         $helper = $this->modelTable->GetFieldDefinitionHelper();
         foreach ($helper->GetFieldDefinition() as $fieldName => $definition) {
@@ -120,11 +182,12 @@ class Select {
            
         }
     }
-    
-    public function getStatement(){
-        
-        $builder = \Pvik\Database\SQL\Statement\Builder\Select::getInstance();
-        
+    /**
+     * Returns the statement
+     * @return \Pvik\Database\SQL\Statement\Statement
+     */
+    public function getStatement(){        
+        $builder = \Pvik\Database\SQL\Statement\Builder\Select::getInstance();   
         $statement = $builder->generate(array(
             'fields' => $this->fields,
             'leftJoins' => $this->leftJoins,
@@ -138,15 +201,19 @@ class Select {
         ));
         return $statement;
     }
-    
-    
+    /**
+     * Executes the select query
+     * @return \Pvik\Database\ORM\EntityArray
+     */
     public function select(){
         $statement = $this->getStatement();
         $result = \Pvik\Database\SQL\Manager::GetInstance()->ExecuteStatement($statement);
         return $this->modelTable->FillEntityArray($result);
     }
-    
-   
+    /**
+     * Executes the select query and returns a single entity
+     * @return \Pvik\Database\ORM\Entity
+     */
     public function selectSingle() {
         $list = $this->select();
         if ($list->count() > 0) {
@@ -157,5 +224,3 @@ class Select {
         }
     }
 }
-
-

@@ -86,7 +86,7 @@ class Select {
         if (!is_string($modelTableName)) {
             throw new \Exception('ModelTableName must be a string.');
         }
-        $this->modelTable = \Pvik\Database\ORM\ModelTable::Get($modelTableName);
+        $this->modelTable = \Pvik\Database\ORM\ModelTable::get($modelTableName);
         $this->prepare();
     }
     /**
@@ -109,7 +109,7 @@ class Select {
             'table' => $table,
             'alias' => $alias,
             'joinForeignKey' => $joinForeignKey,
-            'primaryKey' => $this->modelTable->GetPrimaryKeyName()
+            'primaryKey' => $this->modelTable->getPrimaryKeyName()
         );
     }
     /**
@@ -123,7 +123,7 @@ class Select {
             'table' => $table,
             'alias' => $alias,
             'joinForeignKey' => $joinForeignKey,
-            'primaryKey' => $this->modelTable->GetPrimaryKeyName()
+            'primaryKey' => $this->modelTable->getPrimaryKeyName()
         );
     }
     /**
@@ -160,23 +160,23 @@ class Select {
      * Prepares the select query by the informations from the model table
      */
     protected function prepare(){
-        $helper = $this->modelTable->GetFieldDefinitionHelper();
-        foreach ($helper->GetFieldDefinition() as $fieldName => $definition) {
-              switch ($helper->GetFieldType($fieldName)) {
+        $helper = $this->modelTable->getFieldDefinitionHelper();
+        foreach ($helper->getFieldDefinition() as $fieldName => $definition) {
+              switch ($helper->getFieldType($fieldName)) {
                 case 'Normal':
                 case 'PrimaryKey':
                 case 'ForeignKey':
-                    $this->addField($this->modelTable->GetTableName() . '.'. $fieldName);
+                    $this->addField($this->modelTable->getTableName() . '.'. $fieldName);
                     break;
                 case 'ManyForeignObjects':
                      // get definition for the foreign table
-                    $foreignModelTable = $helper->GetModelTable($fieldName);
+                    $foreignModelTable = $helper->getModelTable($fieldName);
                     // simple creation for a unique alias
-                    $alias = 'JoinAlias_' . $foreignModelTable->GetTableName();
+                    $alias = 'JoinAlias_' . $foreignModelTable->getTableName();
                     // generate group_conact
-                    $this->addField('GROUP_CONCAT(DISTINCT ' . $alias . '.' . $foreignModelTable->GetPrimaryKeyName() . ') as ' . $fieldName);
-                    $this->addLeftJoin($foreignModelTable->GetTableName(), $helper->GetForeignKeyFieldName($fieldName),  $alias);
-                    $this->addGroupBy($this->modelTable->GetTableName() . '.'. $this->modelTable->GetPrimaryKeyName());
+                    $this->addField('GROUP_CONCAT(DISTINCT ' . $alias . '.' . $foreignModelTable->getPrimaryKeyName() . ') as ' . $fieldName);
+                    $this->addLeftJoin($foreignModelTable->getTableName(), $helper->getForeignKeyFieldName($fieldName),  $alias);
+                    $this->addGroupBy($this->modelTable->getTableName() . '.'. $this->modelTable->getPrimaryKeyName());
                     break;
             }
            
@@ -194,7 +194,7 @@ class Select {
             'innerJoins' => $this->innerJoins,
             'groupBys' => $this->groupBys,
             'orderBy' => $this->orderBy,
-            'table' => $this->modelTable->GetTableName(),
+            'table' => $this->modelTable->getTableName(),
             'limit' => $this->limit,
             'offset' => $this->offset,
             'where' => $this->where,
@@ -207,8 +207,8 @@ class Select {
      */
     public function select(){
         $statement = $this->getStatement();
-        $result = \Pvik\Database\SQL\Manager::GetInstance()->ExecuteStatement($statement);
-        return $this->modelTable->FillEntityArray($result);
+        $result = \Pvik\Database\SQL\Manager::getInstance()->executeStatement($statement);
+        return $this->modelTable->fillEntityArray($result);
     }
     /**
      * Executes the select query and returns a single entity

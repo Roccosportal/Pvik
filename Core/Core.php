@@ -18,22 +18,22 @@ class Core {
      * Initializes the error manager.
      * Starts the route manager.
      */
-    public function StartWeb() {
-        ErrorManager::Init();
-        $RouteManager = new RouteManager();
-        $RouteManager->Start();
+    public function startWeb() {
+        ErrorManager::init();
+        $routeManager = new RouteManager();
+        $routeManager->start();
     }
 
     /**
      * Loads the given configs into \Pvik\Core\Config.
-     * @param array $ConfigPaths
+     * @param array $configPaths
      * @return \Pvik\Core\Core
      */
-    public function LoadConfig(array $ConfigPaths) {
-        foreach ($ConfigPaths as $ConfigPath) {
-            Config::Load(Path::RealPath($ConfigPath));
+    public function loadConfig(array $configPaths) {
+        foreach ($configPaths as $configPath) {
+            Config::load(Path::realPath($configPath));
         }
-        Log::WriteLine('[Info] Loaded: ' . implode(",", $ConfigPaths));
+        Log::writeLine('[Info] Loaded: ' . implode(",", $configPaths));
         return $this;
     }
 
@@ -41,21 +41,21 @@ class Core {
      * Creates an guid.
      * @return string 
      */
-    public static function CreateGuid() {
+    public static function createGuid() {
         if (function_exists('com_create_guid')) {
             return com_create_guid();
         } else {
             mt_srand((double) microtime() * 10000); //optional for php 4.2.0 and up.
-            $CharId = strtoupper(md5(uniqid(rand(), true)));
-            $Hyphen = chr(45); // "-"
-            $Uuid = chr(123)// "{"
-                    . substr($CharId, 0, 8) . $Hyphen
-                    . substr($CharId, 8, 4) . $Hyphen
-                    . substr($CharId, 12, 4) . $Hyphen
-                    . substr($CharId, 16, 4) . $Hyphen
-                    . substr($CharId, 20, 12)
+            $charId = strtoupper(md5(uniqid(rand(), true)));
+            $hyphen = chr(45); // "-"
+            $uuid = chr(123)// "{"
+                    . substr($charId, 0, 8) . $hyphen
+                    . substr($charId, 8, 4) . $hyphen
+                    . substr($charId, 12, 4) . $hyphen
+                    . substr($charId, 16, 4) . $hyphen
+                    . substr($charId, 20, 12)
                     . chr(125); // "}"
-            return $Uuid;
+            return $uuid;
         }
     }
 

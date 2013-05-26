@@ -11,66 +11,66 @@ class FieldDefinitionHelper {
      * Field definition of an model table.
      * @var array 
      */
-    protected $FieldDefinition;
+    protected $fieldDefinition;
 
     /**
      * A list of fields in the current field definition.
      * @link GetFieldList()
      * @var \ArrayObject 
      */
-    protected $FieldList;
+    protected $fieldList;
 
     /**
      * A list of fields in the current field definition of type ManyForeignObjects.
      * @link GetManyForeignObjectsFieldList()
      * @var \ArrayObject 
      */
-    protected $ManyForeignObjectsFieldList;
+    protected $manyForeignObjectsFieldList;
 
     /**
      * A list of fields in the current field definition of type ForeignKey.
      * @link GetForeignKeysFieldList()
      * @var \ArrayObject 
      */
-    protected $ForeignKeysFieldList;
+    protected $foreignKeysFieldList;
 
     /**
      * A list of fields in the current field definition of type ForeignObject.
      * @link GetForeignObjectsFieldList()
      * @var \ArrayObject 
      */
-    protected $ForeignObjectsFieldList;
+    protected $foreignObjectsFieldList;
 
     /**
      * Contains the origin ModelTable of the field definition.
      * @var ModelTable 
      */
-    protected $OriginModelTable;
+    protected $originModelTable;
 
     /**
      *
-     * @param array $FieldDefinition
-     * @param ModelTable $OriginModelTable 
+     * @param array $fieldDefinition
+     * @param ModelTable $originModelTable 
      */
-    public function __construct($FieldDefinition, ModelTable $OriginModelTable) {
-        $this->FieldDefinition = $FieldDefinition;
-        $this->OriginModelTable = $OriginModelTable;
+    public function __construct($fieldDefinition, ModelTable $originModelTable) {
+        $this->fieldDefinition = $fieldDefinition;
+        $this->originModelTable = $originModelTable;
     }
 
     /**
      * Returns the origin ModelTable of the field definition
      * @return ModelTable 
      */
-    public function GetOriginModelTable() {
-        return $this->OriginModelTable;
+    public function getOriginModelTable() {
+        return $this->originModelTable;
     }
 
     /**
      * Returns the field definition of the ModelTable.
      * @return type 
      */
-    public function GetFieldDefinition() {
-        return $this->FieldDefinition;
+    public function getFieldDefinition() {
+        return $this->fieldDefinition;
     }
 
     /**
@@ -78,15 +78,15 @@ class FieldDefinitionHelper {
      * Saves the result and just loop once trough the field definition to get all fields.
      * @return ArrayObject 
      */
-    public function GetFieldList() {
+    public function getFieldList() {
         // just run it once and save results
-        if ($this->FieldList == null) {
-            $this->FieldList = new \ArrayObject();
-            foreach ($this->GetFieldDefinition() as $FieldName => $Definition) {
-                $this->FieldList->append($FieldName);
+        if ($this->fieldList == null) {
+            $this->fieldList = new \ArrayObject();
+            foreach ($this->getFieldDefinition() as $fieldName => $definition) {
+                $this->fieldList->append($fieldName);
             }
         }
-        return $this->FieldList;
+        return $this->fieldList;
     }
 
     /**
@@ -94,17 +94,17 @@ class FieldDefinitionHelper {
      * Saves the result and just loop once trough the field definition to get all fields.
      * @return \ArrayObject
      */
-    public function GetManyForeignObjectsFieldList() {
+    public function getManyForeignObjectsFieldList() {
         // just run it once and save results
-        if ($this->ManyForeignObjectsFieldList == null) {
-            $this->ManyForeignObjectsFieldList = new \ArrayObject();
-            foreach ($this->GetFieldList() as $FieldName) {
-                if ($this->IsTypeManyForeignObjects($FieldName)) {
-                    $this->ManyForeignObjectsFieldList->append($FieldName);
+        if ($this->manyForeignObjectsFieldList == null) {
+            $this->manyForeignObjectsFieldList = new \ArrayObject();
+            foreach ($this->getFieldList() as $fieldName) {
+                if ($this->isTypeManyForeignObjects($fieldName)) {
+                    $this->manyForeignObjectsFieldList->append($fieldName);
                 }
             }
         }
-        return $this->ManyForeignObjectsFieldList;
+        return $this->manyForeignObjectsFieldList;
     }
 
     /**
@@ -112,17 +112,17 @@ class FieldDefinitionHelper {
      * Saves the result and just loop once trough the field definition to get all fields.
      * @return \ArrayObject 
      */
-    public function GetForeignKeysFieldList() {
+    public function getForeignKeysFieldList() {
         // just run it once and save results
-        if ($this->ForeignKeysFieldList == null) {
-            $this->ForeignKeysFieldList = new \ArrayObject();
-            foreach ($this->GetFieldList() as $FieldName) {
-                if ($this->IsTypeForeignKey($FieldName)) {
-                    $this->ForeignKeysFieldList->append($FieldName);
+        if ($this->foreignKeysFieldList == null) {
+            $this->foreignKeysFieldList = new \ArrayObject();
+            foreach ($this->getFieldList() as $fieldName) {
+                if ($this->isTypeForeignKey($fieldName)) {
+                    $this->foreignKeysFieldList->append($fieldName);
                 }
             }
         }
-        return $this->ForeignKeysFieldList;
+        return $this->foreignKeysFieldList;
     }
 
     /**
@@ -130,26 +130,26 @@ class FieldDefinitionHelper {
      * Saves the result and just loop once trough the field definition to get all fields.
      * @return \ArrayObject 
      */
-    public function GetForeignObjectsFieldList() {
+    public function getForeignObjectsFieldList() {
         // just run it once and save results
-        if ($this->ForeignObjectsFieldList == null) {
-            $this->ForeignObjectsFieldList = new \ArrayObject();
-            foreach ($this->GetFieldList() as $FieldName) {
-                if ($this->IsTypeForeignObject($FieldName)) {
-                    $this->ForeignObjectsFieldList->append($FieldName);
+        if ($this->foreignObjectsFieldList == null) {
+            $this->foreignObjectsFieldList = new \ArrayObject();
+            foreach ($this->getFieldList() as $fieldName) {
+                if ($this->isTypeForeignObject($fieldName)) {
+                    $this->foreignObjectsFieldList->append($fieldName);
                 }
             }
         }
-        return $this->ForeignObjectsFieldList;
+        return $this->foreignObjectsFieldList;
     }
 
     /**
      * Checks if a field exists in the field definition.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return bool 
      */
-    public function FieldExists($FieldName) {
-        if (isset($this->FieldDefinition[$FieldName])) {
+    public function fieldExists($fieldName) {
+        if (isset($this->fieldDefinition[$fieldName])) {
             return true;
         }
         return false;
@@ -157,25 +157,25 @@ class FieldDefinitionHelper {
 
     /**
      * Returns the definition array of an field or null if the field doesn't exists.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return array 
      */
-    public function GetField($FieldName) {
-        if ($this->FieldExists($FieldName)) {
-            return $this->FieldDefinition[$FieldName];
+    public function getField($fieldName) {
+        if ($this->fieldExists($fieldName)) {
+            return $this->fieldDefinition[$fieldName];
         }
         return null;
     }
 
     /**
      * Checks if a value field for a definition field is set up.
-     * @param string $FieldName
-     * @param string $ValueName
+     * @param string $fieldName
+     * @param string $valueName
      * @return bool 
      */
-    public function HasFieldValue($FieldName, $ValueName) {
-        $Field = $this->GetField($FieldName);
-        if ($Field != null && isset($Field[$ValueName])) {
+    public function hasFieldValue($fieldName, $valueName) {
+        $field = $this->getField($fieldName);
+        if ($field != null && isset($field[$valueName])) {
             return true;
         }
         return false;
@@ -183,35 +183,35 @@ class FieldDefinitionHelper {
 
     /**
      * Returns the value of a value field in a field definition or null.
-     * @param string $FieldName
-     * @param string $ValueName
+     * @param string $fieldName
+     * @param string $valueName
      * @return string 
      */
-    public function GetFieldValue($FieldName, $ValueName) {
-        if ($this->HasFieldValue($FieldName, $ValueName)) {
-            $Field = $this->GetField($FieldName);
-            return $Field[$ValueName];
+    public function getFieldValue($fieldName, $valueName) {
+        if ($this->HasFieldValue($fieldName, $valueName)) {
+            $field = $this->getField($fieldName);
+            return $field[$valueName];
         }
         return null;
     }
 
     /**
      * Returns the type of a field or null.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return string 
      */
-    public function GetFieldType($FieldName) {
-        return $this->GetFieldValue($FieldName, 'Type');
+    public function getFieldType($fieldName) {
+        return $this->getFieldValue($fieldName, 'Type');
     }
 
     /**
      * Checks if the type is ForeignKey of a field.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return bool 
      */
-    public function IsTypeForeignKey($FieldName) {
-        $FieldType = $this->GetFieldType($FieldName);
-        if ($FieldType == 'ForeignKey') {
+    public function isTypeForeignKey($fieldName) {
+        $fieldType = $this->getFieldType($fieldName);
+        if ($fieldType == 'ForeignKey') {
             return true;
         }
         return false;
@@ -219,12 +219,12 @@ class FieldDefinitionHelper {
 
     /**
      * Checks if the type is PrimaryKey of a field.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return bool 
      */
-    public function IsTypePrimaryKey($FieldName) {
-        $FieldType = $this->GetFieldType($FieldName);
-        if ($FieldType == 'PrimaryKey') {
+    public function isTypePrimaryKey($fieldName) {
+        $fieldType = $this->getFieldType($fieldName);
+        if ($fieldType == 'PrimaryKey') {
             return true;
         }
         return false;
@@ -232,12 +232,12 @@ class FieldDefinitionHelper {
 
     /**
      * Checks if the type is ForeignObject of a field.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return bool 
      */
-    public function IsTypeForeignObject($FieldName) {
-        $FieldType = $this->GetFieldType($FieldName);
-        if ($FieldType == 'ForeignObject') {
+    public function isTypeForeignObject($fieldName) {
+        $fieldType = $this->getFieldType($fieldName);
+        if ($fieldType == 'ForeignObject') {
             return true;
         }
         return false;
@@ -245,12 +245,12 @@ class FieldDefinitionHelper {
 
     /**
      * Checks if the type is ManyForeignObjects of a field.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return bool 
      */
-    public function IsTypeManyForeignObjects($FieldName) {
-        $FieldType = $this->GetFieldType($FieldName);
-        if ($FieldType == 'ManyForeignObjects') {
+    public function isTypeManyForeignObjects($fieldName) {
+        $fieldType = $this->getFieldType($fieldName);
+        if ($fieldType == 'ManyForeignObjects') {
             return true;
         }
         return false;
@@ -258,12 +258,12 @@ class FieldDefinitionHelper {
 
     /**
      * Returns the ForeignKey field name for an field of type ForeignObject or ManyForeignObjects.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return string 
      */
-    public function GetForeignKeyFieldName($FieldName) {
-        if ($this->IsTypeForeignObject($FieldName) || $this->IsTypeManyForeignObjects($FieldName)) {
-            return $this->GetFieldValue($FieldName, 'ForeignKey');
+    public function getForeignKeyFieldName($fieldName) {
+        if ($this->isTypeForeignObject($fieldName) || $this->isTypeManyForeignObjects($fieldName)) {
+            return $this->getFieldValue($fieldName, 'ForeignKey');
         } else {
             throw new \Exception('Only the types ForeignObject and ManyForeignObjects have a ModelTable.');
         }
@@ -271,33 +271,33 @@ class FieldDefinitionHelper {
 
     /**
      * Returns the name of the ModelTable value field for the definition field or null.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return string 
      */
-    public function GetModelTableName($FieldName) {
-        $Field = $this->GetField($FieldName);
-        if ($Field != null) {
-            return $this->GetFieldValue($FieldName, 'ModelTable');
+    public function getModelTableName($fieldName) {
+        $field = $this->getField($fieldName);
+        if ($field != null) {
+            return $this->getFieldValue($fieldName, 'ModelTable');
         }
         return null;
     }
 
     /**
      * Returns the ModelTable for a ForeignKey, ManyForeignObjects or ForeignObject field.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return ModelTable 
      */
-    public function GetModelTable($FieldName) {
-        if ($this->IsTypeForeignKey($FieldName) || $this->IsTypeManyForeignObjects($FieldName)) {
-            $ModelTableName = $this->GetModelTableName($FieldName);
+    public function getModelTable($fieldName) {
+        if ($this->isTypeForeignKey($fieldName) || $this->isTypeManyForeignObjects($fieldName)) {
+            $modelTableName = $this->getModelTableName($fieldName);
 
-            return ModelTable::Get($ModelTableName);
-        } elseif ($this->IsTypeForeignObject($FieldName)) {
-            $ForeignKeyFieldName = $this->GetForeignKeyFieldName($FieldName);
-            $ModelTableName = $this->GetModelTableName($ForeignKeyFieldName);
+            return ModelTable::get($modelTableName);
+        } elseif ($this->isTypeForeignObject($fieldName)) {
+            $foreignKeyFieldName = $this->getForeignKeyFieldName($fieldName);
+            $modelTableName = $this->getModelTableName($foreignKeyFieldName);
 
 
-            return ModelTable::Get($ModelTableName);
+            return ModelTable::get($modelTableName);
         } else {
             throw new \Exception('Only the types ForeignKey, ManyForeignObjects, ForeignObject have a ModelTable.');
         }
@@ -305,30 +305,30 @@ class FieldDefinitionHelper {
 
     /**
      * Returns the ModelTable name of a field of type ForeignObject or null.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return string 
      */
-    public function GetModelTableNameForForeignObject($FieldName) {
-        if ($this->IsTypeForeignObject($FieldName)) {
-            $ForeignKeyFieldName = $this->GetFieldValue($FieldName, 'ForeignKey');
-            if ($ForeignKeyFieldName != null && $ForeignKeyFieldName != '') {
-                return $this->GetModelTableName($ForeignKeyFieldName);
+    public function getModelTableNameForForeignObject($fieldName) {
+        if ($this->isTypeForeignObject($fieldName)) {
+            $foreignKeyFieldName = $this->getFieldValue($fieldName, 'ForeignKey');
+            if ($foreignKeyFieldName != null && $foreignKeyFieldName != '') {
+                return $this->getModelTableName($foreignKeyFieldName);
             }
         } else {
-            throw new \Exception($FieldName . ' is not an ForeignObject.');
+            throw new \Exception($fieldName . ' is not an ForeignObject.');
         }
         return null;
     }
 
     /**
      * Checks is a PrimaryKey is set up as Guid.
-     * @param string $FieldName
+     * @param string $fieldName
      * @return bool 
      */
-    public function IsGuid($FieldName) {
-        if ($this->IsTypePrimaryKey($FieldName)) {
-            $Value = $this->GetFieldValue($FieldName, 'IsGuid');
-            if ($Value === true) {
+    public function isGuid($fieldName) {
+        if ($this->isTypePrimaryKey($fieldName)) {
+            $value = $this->getFieldValue($fieldName, 'IsGuid');
+            if ($value === true) {
                 return true;
             } else {
                 return false;

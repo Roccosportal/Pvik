@@ -11,41 +11,41 @@ Class KeyValuePair {
      *
      * @var string 
      */
-    protected $Key = null;
+    protected $key = null;
 
     /**
      *
      * @var mixed 
      */
-    protected $Value = null;
+    protected $value = null;
 
-    public function __construct($Key, $Value) {
-        $this->Key = $Key;
-        $this->Value = $Value;
+    public function __construct($key, $value) {
+        $this->key = $key;
+        $this->value = $value;
     }
 
     /**
      * Returns the key.
      * @return string 
      */
-    public function GetKey() {
-        return $this->Key;
+    public function getKey() {
+        return $this->key;
     }
 
     /**
      * Sets the value.
-     * @param mixed $Value 
+     * @param mixed $value 
      */
-    public function SetValue($Value) {
-        $this->Value = $Value;
+    public function setValue($value) {
+        $this->value = $value;
     }
 
     /**
      * Returns the value.
      * @return mixed 
      */
-    public function GetValue() {
-        return $this->Value;
+    public function getValue() {
+        return $this->value;
     }
 
     /**
@@ -53,7 +53,7 @@ Class KeyValuePair {
      * @return mixed. 
      */
     public function __toString() {
-        return $this->Value;
+        return $this->value;
     }
 
 }

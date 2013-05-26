@@ -11,341 +11,341 @@ class EntityArray extends \ArrayObject {
      * Contains the list of fields that get sorted when running a sort function.
      * @var array 
      */
-    protected $SortFieldLists = null;
+    protected $sortFieldLists = null;
 
     /**
      * Contains the ModelTable of the models.
      * @var ModelTable 
      */
-    protected $ModelTable;
+    protected $modelTable;
 
     /**
      * Sets the ModelTable of the models
-     * @param ModelTable $ModelTable 
+     * @param ModelTable $modelTable 
      */
-    public function SetModelTable(ModelTable $ModelTable = null) {
-        $this->ModelTable = $ModelTable;
+    public function setModelTable(ModelTable $modelTable = null) {
+        $this->modelTable = $modelTable;
     }
 
     /**
      * Get the ModelTable of the models
      * @return ModelTable 
      */
-    public function GetModelTable() {
-        return $this->ModelTable;
+    public function getModelTable() {
+        return $this->modelTable;
     }
 
     /**
      * Run a distinct on a field
-     * @param string $FieldName
+     * @param string $fieldName
      * @return EntityArray 
      */
-    public function Distinct($FieldName) {
-        $KeyList = array();
-        $List = new EntityArray();
-        foreach ($this as $Object) {
-            if (!in_array($Object->$FieldName, $KeyList)) {
-                array_push($KeyList, $Object->$FieldName);
-                $List->append($Object);
+    public function distinct($fieldName) {
+        $keyList = array();
+        $list = new EntityArray();
+        foreach ($this as $object) {
+            if (!in_array($object->$fieldName, $keyList)) {
+                array_push($keyList, $object->$fieldName);
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field is equals one of the given values.
-     * @param string $FieldName
-     * @param IteratorAggregate $Values
+     * @param string $fieldName
+     * @param IteratorAggregate $values
      * @return EntityArray 
      */
-    public function FilterIn($FieldName, IteratorAggregate $Values) {
-        $List = new ModelArray();
-        $List->SetModelTable($this->GetModelTable());
-        if ($Values === null)
-            return $List;
+    public function filterIn($fieldName, IteratorAggregate $values) {
+        $list = new ModelArray();
+        $list->setModelTable($this->getModelTable());
+        if ($values === null)
+            return $list;
 
 
-        if (!is_array($Values) && !($Values instanceof IteratorAggregate))
+        if (!is_array($values) && !($values instanceof IteratorAggregate))
             throw new \Exception('The parameters keys must be an array.');
 
 
-        foreach ($this as $Object) {
-            foreach ($Values as $Value) {
-                if ($Object->$FieldName === $Value) {
-                    $List->append($Object);
+        foreach ($this as $object) {
+            foreach ($values as $value) {
+                if ($object->$fieldName === $value) {
+                    $list->append($object);
                     break;
                 }
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field is not equals one of the given values.
-     * @param string $FieldName
-     * @param IteratorAggregate $Values
+     * @param string $fieldName
+     * @param IteratorAggregate $values
      * @return EntityArray 
      */
-    public function FilterNotIn($FieldName, $Values) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        if ($Values === null)
-            return $List;
+    public function filterNotIn($fieldName, $values) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        if ($values === null)
+            return $list;
 
 
-        if (!is_array($Values) && !($Values instanceof IteratorAggregate))
+        if (!is_array($values) && !($values instanceof IteratorAggregate))
             throw new \Exception('The parameters keys must be an array.');
 
 
-        foreach ($this as $Object) {
-            $HasValue = false;
-            foreach ($Values as $Value) {
-                if ($Object->$FieldName == $Value) {
-                    $HasValue = true;
+        foreach ($this as $object) {
+            $hasValue = false;
+            foreach ($values as $value) {
+                if ($object->$fieldName == $value) {
+                    $hasValue = true;
                     break;
                 }
             }
-            if ($HasValue == false) {
-                $List->append($Object);
+            if ($hasValue == false) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where a field value is equals to the value.
-     * @param string $FieldName
-     * @param mixed $Value
+     * @param string $fieldName
+     * @param mixed $value
      * @return EntityArray 
      */
-    public function FilterEquals($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName === $Value) {
-                $List->append($Object);
+    public function filterEquals($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName === $value) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where a field value is higher than the value.
-     * @param string $FieldName
-     * @param mixed $Value
+     * @param string $fieldName
+     * @param mixed $value
      * @return EntityArray 
      */
-    public function FilterHeigher($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName > $Value) {
-                $List->append($Object);
+    public function filterHeigher($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName > $value) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field value is higher or equals to the value.
-     * @param string $FieldName
-     * @param type $Value
+     * @param string $fieldName
+     * @param type $value
      * @return EntityArray 
      */
-    public function FilterHeigherEquals($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName >= $Value) {
-                $List->append($Object);
+    public function filterHeigherEquals($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName >= $value) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field is lower than the value
-     * @param string $FieldName
-     * @param mixed $Value
+     * @param string $fieldName
+     * @param mixed $value
      * @return EntityArray 
      */
-    public function FilterLower($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName < $Value) {
-                $List->append($Object);
+    public function filterLower($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName < $value) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field value is lower or equals to the value.
-     * @param string $FieldName
-     * @param mixed $Value
+     * @param string $fieldName
+     * @param mixed $value
      * @return EntityArray 
      */
-    public function FilterLowerEquals($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName <= $Value) {
-                $List->append($Object);
+    public function filterLowerEquals($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName <= $value) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field value is not equals the value.
-     * @param string $FieldName
-     * @param mixed $Value
+     * @param string $fieldName
+     * @param mixed $value
      * @return EntityArray 
      */
-    public function FilterNotEquals($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName !== $Value) {
-                $List->append($Object);
+    public function filterNotEquals($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName !== $value) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field value starts with the value.
-     * @param string $FieldName
-     * @param string $Value
+     * @param string $fieldName
+     * @param string $value
      * @return EntityArray 
      */
-    public function FilterStartsWith($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName != null && strpos($Object->$FieldName, $Value) === 0) {
-                $List->append($Object);
+    public function filterStartsWith($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName != null && strpos($object->$fieldName, $value) === 0) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field value ends with the value.
-     * @param string $FieldName
-     * @param string $Value
+     * @param string $fieldName
+     * @param string $value
      * @return EntityArray 
      */
-    public function FilterEndsWith($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if ($Object->$FieldName != null) {
-                $LengthField = strlen($Object->$FieldName);
-                $LengthValue = strlen($Value);
-                if ($LengthField >= $LengthValue) {
-                    if (strpos($Object->$FieldName, $Value) === ($LengthField - $LengthValue)) {
-                        $List->append($Object);
+    public function filterEndsWith($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if ($object->$fieldName != null) {
+                $lengthField = strlen($object->$fieldName);
+                $lengthValue = strlen($value);
+                if ($lengthField >= $lengthValue) {
+                    if (strpos($object->$fieldName, $value) === ($lengthField - $lengthValue)) {
+                        $list->append($object);
                     }
                 }
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of models where the field value contains the value.
-     * @param string $FieldName
-     * @param string $Value
+     * @param string $fieldName
+     * @param string $value
      * @return EntityArray 
      */
-    public function FilterContains($FieldName, $Value) {
-        $List = new EntityArray();
-        $List->SetModelTable($this->GetModelTable());
-        foreach ($this as $Object) {
-            if (strpos($Object->$FieldName, $Value) !== false) {
-                $List->append($Object);
+    public function filterContains($fieldName, $value) {
+        $list = new EntityArray();
+        $list->setModelTable($this->getModelTable());
+        foreach ($this as $object) {
+            if (strpos($object->$fieldName, $value) !== false) {
+                $list->append($object);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns a list of an field.
-     * @param type $FieldName
+     * @param type $fieldName
      * @return EntityArray 
      */
-    public function GetList($FieldName) {
-        $List = new EntityArray();
-        if ($this->ModelTable != null) {
-            $Helper = $this->ModelTable->GetFieldDefinitionHelper();
-            if ($Helper->IsTypeForeignObject($FieldName) || $Helper->IsTypeManyForeignObjects($FieldName)) {
-                $List->SetModelTable($Helper->GetModelTable($FieldName));
+    public function getList($fieldName) {
+        $list = new EntityArray();
+        if ($this->modelTable != null) {
+            $helper = $this->modelTable->getFieldDefinitionHelper();
+            if ($helper->isTypeForeignObject($fieldName) || $helper->isTypeManyForeignObjects($fieldName)) {
+                $list->setModelTable($helper->getModelTable($fieldName));
             }
         }
-        foreach ($this as $Object) {
-            $List->append($Object->$FieldName);
+        foreach ($this as $object) {
+            $list->append($object->$fieldName);
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns the first object in the list.
      * @return Entity; 
      */
-    public function GetFirst() {
-        foreach ($this as $Object) {
-            return $Object;
+    public function getFirst() {
+        foreach ($this as $object) {
+            return $object;
         }
         return null;
     }
 
     /**
      * Returns the first objects in the list
-     * @param int $MaxCount
+     * @param int $maxCount
      * @return EntityArray 
      */
-    public function GetFirsts($MaxCount) {
-        $List = new EntityArray();
-        if ($this->ModelTable != null) {
-            $List->SetModelTable($this->ModelTable);
+    public function getFirsts($maxCount) {
+        $list = new EntityArray();
+        if ($this->modelTable != null) {
+            $list->setModelTable($this->modelTable);
         }
-        $Count = 1;
-        foreach ($this as $Object) {
-            $List->append($Object);
-            if ($Count == $MaxCount) {
+        $count = 1;
+        foreach ($this as $object) {
+            $list->append($object);
+            if ($count == $maxCount) {
                 break;
             } else {
-                $Count++;
+                $count++;
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Returns the objects between start and end number.
-     * @param int $Start
-     * @param int $Length
+     * @param int $start
+     * @param int $length
      * @return EntityArray 
      */
-    public function GetBetween($Start, $Length) {
-        $List = new EntityArray();
-        if ($this->ModelTable != null) {
-            $List->SetModelTable($this->ModelTable);
+    public function getBetween($start, $length) {
+        $list = new EntityArray();
+        if ($this->modelTable != null) {
+            $list->setModelTable($this->modelTable);
         }
-        $Count = 1;
-        foreach ($this as $Object) {
-            if ($Count >= $Start) {
-                if ($Start + $Length != $Count) {
-                    $List->append($Object);
+        $count = 1;
+        foreach ($this as $object) {
+            if ($count >= $start) {
+                if ($start + $length != $count) {
+                    $list->append($object);
                 } else {
                     break;
                 }
             }
-            $Count++;
+            $count++;
         }
-        return $List;
+        return $list;
     }
 
     /**
@@ -354,61 +354,61 @@ class EntityArray extends \ArrayObject {
      * @example Sort('Date'); // sorts the list asscending to field date
      * @example Sort('-Date'); // sorts the list descending to field date
      * @example Sort('+Date'); // equals to Sort('Date')
-     * @example Sort('Author->Name'); // author is a ForeignObject and the list gets sorted assencding to the name
-     * @example Sort('Date', '-Author->Name'); // sorts first to field date and than to sub field of author
-     * @example Sort('Date', 'Author->Country->Name', 'Author->Name');
-     * @param type $SortArgument
+     * @example Sort('Author->name'); // author is a ForeignObject and the list gets sorted assencding to the name
+     * @example Sort('Date', '-Author->name'); // sorts first to field date and than to sub field of author
+     * @example Sort('Date', 'Author->country->name', 'Author->name');
+     * @param type $sortArgument
      * @return EntityArray 
      */
-    public function Sort($SortArgument) {
-        $Arguments = func_get_args();
-        $FieldLists = array();
-        foreach ($Arguments as $Argument) {
-            array_push($FieldLists, $this->ConvertStringToFieldList($Argument, true));
+    public function sort($sortArgument) {
+        $arguments = func_get_args();
+        $fieldLists = array();
+        foreach ($arguments as $argument) {
+            array_push($fieldLists, $this->convertStringToFieldList($argument, true));
         }
-        $this->SortFieldLists = $FieldLists;
+        $this->sortFieldLists = $fieldLists;
         $this->uasort(array($this, 'Compare'));
         return $this;
     }
 
     /**
-     * Converts a field string from 'Author->Country->Name' to an array
-     * @param string $String
-     * @param bool $IsSortable
+     * Converts a field string from 'Author->country->name' to an array
+     * @param string $string
+     * @param bool $isSortable
      * @return array 
      */
-    protected function ConvertStringToFieldList($String, $IsSortable = false) {
-        if ($IsSortable) {
-            $Sort = 'ASC';
-            if ($String[0] == '+') {
-                $String = substr($String, 1);
-            } elseif ($String[0] == '-') {
-                $String = substr($String, 1);
-                $Sort = 'DESC';
+    protected function convertStringToFieldList($string, $isSortable = false) {
+        if ($isSortable) {
+            $sort = 'ASC';
+            if ($string[0] == '+') {
+                $string = substr($string, 1);
+            } elseif ($string[0] == '-') {
+                $string = substr($string, 1);
+                $sort = 'DESC';
             }
         }
 
-        $Fields = explode('->', $String);
+        $fields = explode('->', $string);
 
-        $FieldList = array();
-        if ($IsSortable)
-            $FieldList['Sort'] = $Sort;
-        $FieldList['Fields'] = $Fields;
-        return $FieldList;
+        $fieldList = array();
+        if ($isSortable)
+            $fieldList['Sort'] = $sort;
+        $fieldList['Fields'] = $fields;
+        return $fieldList;
     }
 
     /**
      * Compares two obects.
-     * @param mixed $Object1
-     * @param mixed $Object2
+     * @param mixed $object1
+     * @param mixed $object2
      * @return int 
      */
-    public function Compare($Object1, $Object2) {
-        $FieldLists = $this->SortFieldLists;
-        foreach ($FieldLists as $FieldList) {
-            $Result = $this->CompareFieldList($Object1, $Object2, $FieldList);
-            if ($Result != 0) {
-                return $Result;
+    public function compare($object1, $object2) {
+        $fieldLists = $this->sortFieldLists;
+        foreach ($fieldLists as $fieldList) {
+            $result = $this->compareFieldList($object1, $object2, $fieldList);
+            if ($result != 0) {
+                return $result;
             }
         }
         return 0;
@@ -416,81 +416,81 @@ class EntityArray extends \ArrayObject {
 
     /**
      * Compares a two objects to a field list.
-     * @param mixed $Object1
-     * @param mixed $Object2
-     * @param array $FieldList
+     * @param mixed $object1
+     * @param mixed $object2
+     * @param array $fieldList
      * @return int 
      */
-    protected function CompareFieldList($Object1, $Object2, $FieldList) {
-        $Sort = $FieldList['Sort'];
-        $Fields = $FieldList['Fields'];
-        $CountFields = count($Fields);
-        for ($Index = 0; $Index < $CountFields; $Index++) {
-            $Field = $Fields[$Index];
-            if ($Object1->$Field == null && $Object2->$Field == null) {
+    protected function compareFieldList($object1, $object2, $fieldList) {
+        $sort = $fieldList['Sort'];
+        $fields = $fieldList['Fields'];
+        $countFields = count($fields);
+        for ($index = 0; $index < $countFields; $index++) {
+            $field = $fields[$index];
+            if ($object1->$field == null && $object2->$field == null) {
                 return 0;
-            } elseif ($Object1->$Field == null) {
-                if ($Sort == 'ASC') {
+            } elseif ($object1->$field == null) {
+                if ($sort == 'ASC') {
                     return -1;
                 }
                 return 1;
-            } elseif ($Object2->$Field == null) {
-                if ($Sort == 'ASC') {
+            } elseif ($object2->$field == null) {
+                if ($sort == 'ASC') {
                     return 1;
                 }
                 return -1;
             }
             // if it is the last item in the field list
-            elseif ($Index == ($CountFields - 1)) {
-                if ($Object1->$Field == $Object2->$Field) {
+            elseif ($index == ($countFields - 1)) {
+                if ($object1->$field == $object2->$field) {
                     return 0;
-                } elseif ($Object1->$Field < $Object2->$Field) {
-                    if ($Sort == 'ASC') {
+                } elseif ($object1->$field < $object2->$field) {
+                    if ($sort == 'ASC') {
                         return -1;
                     }
                     return 1;
-                } elseif ($Sort == 'ASC') {
+                } elseif ($sort == 'ASC') {
                     return 1;
                 }
                 return -1;
             } else {
-                $Object1 = $Object1->$Field;
-                $Object2 = $Object2->$Field;
+                $object1 = $object1->$field;
+                $object2 = $object2->$field;
             }
         }
     }
 
     /**
      * Merge a EntityArray to current EntityArray
-     * @param EntityArray $EntityArray
+     * @param EntityArray $entityArray
      * @return EntityArray 
      */
-    public function Merge(EntityArray $EntityArray) {
-        $List = new EntityArray();
+    public function merge(EntityArray $entityArray) {
+        $list = new EntityArray();
         // set model table if both arrays have the same model table
-        if ($this->GetModelTable() == $EntityArray->GetModelTable()) {
-            $List->SetModelTable($this->GetModelTable());
+        if ($this->getModelTable() == $entityArray->getModelTable()) {
+            $list->setModelTable($this->getModelTable());
         }
-        foreach ($this as $Object) {
+        foreach ($this as $object) {
 
-            $List->append($Object);
+            $list->append($object);
         }
-        foreach ($EntityArray as $Object) {
+        foreach ($entityArray as $object) {
 
-            $List->append($Object);
+            $list->append($object);
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Checks if one of the models in list have the value.
-     * @param string $FieldName
-     * @param mixed $Value
+     * @param string $fieldName
+     * @param mixed $value
      * @return bool 
      */
-    public function HasValue($FieldName, $Value) {
-        foreach ($this as $Object) {
-            if ($Object->$FieldName === $Value) {
+    public function hasValue($fieldName, $value) {
+        foreach ($this as $object) {
+            if ($object->$fieldName === $value) {
                 return true;
             }
         }
@@ -499,75 +499,75 @@ class EntityArray extends \ArrayObject {
 
     /**
      * Checks if none of the models in list have the value.
-     * @param type $FieldName
-     * @param type $Value
+     * @param type $fieldName
+     * @param type $value
      * @return type 
      */
-    public function HasNotValue($FieldName, $Value) {
-        return !$this->HasValue($FieldName, $Value);
+    public function hasNotValue($fieldName, $value) {
+        return !$this->HasValue($fieldName, $value);
     }
 
     /**
      * Loads a list of fields in the model.
      * @example LoadList('Author->Books'); // returns a list of books
-     * @param string $Fields
+     * @param string $fields
      * @return EntityArray 
      */
-    public function LoadList($Fields) {
-        if ($this->ModelTable == null) {
+    public function loadList($fields) {
+        if ($this->modelTable == null) {
             throw new \Exception('ModelTable must be set to use this function.');
         }
-        $FieldList = $this->ConvertStringToFieldList($Fields);
-        $ModelTable = $this->ModelTable;
-        $List = $this;
-        foreach ($FieldList['Fields'] as $FieldName) {
+        $fieldList = $this->convertStringToFieldList($fields);
+        $modelTable = $this->modelTable;
+        $list = $this;
+        foreach ($fieldList['Fields'] as $fieldName) {
             // load definition for current field
-            $Helper = $ModelTable->GetFieldDefinitionHelper();
+            $helper = $modelTable->getFieldDefinitionHelper();
 
-            if (!$Helper->FieldExists($FieldName)) {
-                throw new \Exception('Field ' . $FieldName . ' must be in field definition');
+            if (!$helper->fieldExists($fieldName)) {
+                throw new \Exception('Field ' . $fieldName . ' must be in field definition');
             }
-            switch ($Helper->GetFieldType($FieldName)) {
+            switch ($helper->getFieldType($fieldName)) {
                 case 'ForeignObject':
-                    $ForeignKeyFieldName = $Helper->GetForeignKeyFieldName($FieldName);
-                    $ForeignModelTable = $Helper->GetModelTable($ForeignKeyFieldName);
-                    $Keys = array();
+                    $foreignKeyFieldName = $helper->getForeignKeyFieldName($fieldName);
+                    $foreignModelTable = $helper->getModelTable($foreignKeyFieldName);
+                    $keys = array();
                     // get all keys
-                    foreach ($List as $Object) {
-                        if ($Object != null && $Object->$ForeignKeyFieldName !== null) {
-                            array_push($Keys, $Object->$ForeignKeyFieldName);
+                    foreach ($list as $object) {
+                        if ($object != null && $object->$foreignKeyFieldName !== null) {
+                            array_push($keys, $object->$foreignKeyFieldName);
                         }
                     }
                     // load all foreign objects
-                    $List = $ForeignModelTable->LoadByPrimaryKeys($Keys);
+                    $list = $foreignModelTable->loadByPrimaryKeys($keys);
                     // set for the next field in the loop
-                    $ModelTable = $ForeignModelTable;
+                    $modelTable = $foreignModelTable;
                     break;
                 case 'ManyForeignObjects':
-                    $ForeignModelTable = $Helper->GetModelTable($FieldName);
-                    $Keys = array();
-                    foreach ($List as $Object) {
-                        if ($Object != null) {
-                            $Keys = array_merge($Keys, $Object->GetKeys($FieldName));
+                    $foreignModelTable = $helper->getModelTable($fieldName);
+                    $keys = array();
+                    foreach ($list as $object) {
+                        if ($object != null) {
+                            $keys = array_merge($keys, $object->getKeys($fieldName));
                         }
                     }
-                    $List = $ForeignModelTable->LoadByPrimaryKeys($Keys);
+                    $list = $foreignModelTable->loadByPrimaryKeys($keys);
                     // set for the next field in the loop
-                    $ModelTable = $ForeignModelTable;
+                    $modelTable = $foreignModelTable;
                     break;
                 default:
                     return null;
                     break;
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      * Checks if the list is empty.
      * @return bool 
      */
-    public function IsEmpty() {
+    public function isEmpty() {
         if ($this->count() == 0) {
             return true;
         } else {

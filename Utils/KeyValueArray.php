@@ -11,68 +11,68 @@ Class KeyValueArray {
      * Array of KeyValuePairs.
      * @var array 
      */
-    protected $KeyValuePairs = null;
+    protected $keyValuePairs = null;
 
     /**
      * 
      */
     public function __construct() {
-        $this->KeyValuePairs = array();
+        $this->keyValuePairs = array();
     }
 
     /**
      * Add a value to a key if the key doesn't exists.
-     * @param string $Key
-     * @param mixed $Value 
+     * @param string $key
+     * @param mixed $value 
      */
-    public function Add($Key, $Value) {
-        if (!$this->ContainsKey($Key)) {
-            $KeyValuePair = new KeyValuePair($Key, $Value);
-            array_push($this->KeyValuePairs, $KeyValuePair);
+    public function add($key, $value) {
+        if (!$this->containsKey($key)) {
+            $keyValuePair = new KeyValuePair($key, $value);
+            array_push($this->keyValuePairs, $keyValuePair);
         } else {
-            throw new \Exception('The key already exists: ' . $Key);
+            throw new \Exception('The key already exists: ' . $key);
         }
     }
 
     /**
      * Set a value to a key even when the key already exists.
-     * @param string $Key
-     * @param mixed $Value 
+     * @param string $key
+     * @param mixed $value 
      */
-    public function Set($Key, $Value) {
-        if ($this->ContainsKey($Key)) {
-            $Pair = $this->GetPair($Key);
-            if ($Pair != null) {
-                $Pair->SetValue($Value);
+    public function set($key, $value) {
+        if ($this->containsKey($key)) {
+            $pair = $this->getPair($key);
+            if ($pair != null) {
+                $pair->setValue($value);
             } else {
                 throw new \Exception('Unexpected error caused.');
             }
         } else {
-            $this->Add($Key, $Value);
+            $this->add($key, $value);
         }
     }
 
     /**
      * Removes a key from the array.
-     * @param type $Key 
+     * @param type $key 
      */
-    public function Remove($Key) {
-        if ($this->ContainsKey($Key)) {
-            unset($this->KeyValuePairs[$Key]);
+    public function remove($key) {
+        if ($this->containsKey($key)) {
+            unset($this->keyValuePairs[$key]);
         } else {
-            throw new \Exception('The key doesn\'t exists: ' . $Key);
+            throw new \Exception('The key doesn\'t exists: ' . $key);
         }
     }
 
     /**
      * Returns the KeyValuePair.
-     * @param string $Key
+     * @param string $key
      * @return KeyValuePair 
      */
-    public function GetPair($Key) {
-        foreach ($this->KeyValuePairs as $KeyValuePair) {
-            if ($KeyValuePair->GetKey() == $Key) {
-                return $KeyValuePair;
+    public function getPair($key) {
+        foreach ($this->keyValuePairs as $keyValuePair) {
+            if ($keyValuePair->getKey() == $key) {
+                return $keyValuePair;
             }
         }
         return null;
@@ -80,13 +80,13 @@ Class KeyValueArray {
 
     /**
      * Returns the value.
-     * @param string $Key
+     * @param string $key
      * @return mixed 
      */
-    public function Get($Key) {
-        foreach ($this->KeyValuePairs as $KeyValuePair) {
-            if ($KeyValuePair->GetKey() == $Key) {
-                return $KeyValuePair->GetValue();
+    public function get($key) {
+        foreach ($this->keyValuePairs as $keyValuePair) {
+            if ($keyValuePair->getKey() == $key) {
+                return $keyValuePair->getValue();
             }
         }
         return null;
@@ -94,12 +94,12 @@ Class KeyValueArray {
 
     /**
      * Checks if a key exists,
-     * @param string $Key
+     * @param string $key
      * @return bool 
      */
-    public function ContainsKey($Key) {
-        foreach ($this->KeyValuePairs as $KeyValuePair) {
-            if ($KeyValuePair->GetKey() == $Key) {
+    public function containsKey($key) {
+        foreach ($this->keyValuePairs as $keyValuePair) {
+            if ($keyValuePair->getKey() == $key) {
                 return true;
             }
         }
@@ -108,14 +108,14 @@ Class KeyValueArray {
 
     /**
      * Checks if the value to a key is not empty.
-     * @param string $Key
+     * @param string $key
      * @return bool 
      */
-    public function IsNotEmpty($Key) {
-        foreach ($this->KeyValuePairs as $KeyValuePair) {
-            if ($KeyValuePair->GetKey() == $Key) {
-                $Value = $KeyValuePair->GetValue();
-                if (!empty($Value)) {
+    public function isNotEmpty($key) {
+        foreach ($this->keyValuePairs as $keyValuePair) {
+            if ($keyValuePair->getKey() == $key) {
+                $value = $keyValuePair->getValue();
+                if (!empty($value)) {
                     return true;
                 } else {
                     return false;

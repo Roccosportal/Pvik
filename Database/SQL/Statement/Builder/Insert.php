@@ -2,19 +2,19 @@
 namespace Pvik\Database\SQL\Statement\Builder;
 
 class Insert extends Generic{
-    protected static $Instance;
+    protected static $instance;
     
    public static function getInstance(){
-        if(!self::$Instance){
+        if(!self::$instance){
             $adapterClassName  = \Pvik\Database\Adapter\Adapter::getAdapterClassName('SQL\Statement\Builder\Insert');
             if($adapterClassName){
-                self::$Instance = new $adapterClassName();
+                self::$instance = new $adapterClassName();
             }
             else{
-                self::$Instance = new Insert();
+                self::$instance = new Insert();
             }
         }
-        return self::$Instance;
+        return self::$instance;
     }
     
     protected function __construct(){

@@ -50,7 +50,7 @@ class Delete {
      * @param string $modelTableName
      */
     protected function __construct($modelTableName){
-        $this->modelTable = \Pvik\Database\ORM\ModelTable::Get($modelTableName);
+        $this->modelTable = \Pvik\Database\ORM\ModelTable::get($modelTableName);
     }
     /**
      * Returns the statement
@@ -60,7 +60,7 @@ class Delete {
         $statementBuilder = \Pvik\Database\SQL\Statement\Builder\Delete::getInstance();
         
         $statement = $statementBuilder->generate(array(
-            'table' => $this->modelTable->GetTableName(),
+            'table' => $this->modelTable->getTableName(),
             'where' =>  $this->where,
         ));
         return $statement;
@@ -71,6 +71,6 @@ class Delete {
      */
     public function execute(){
         $statement = $this->getStatement();
-        return \Pvik\Database\SQL\Manager::GetInstance()->ExecuteStatement($statement);
+        return \Pvik\Database\SQL\Manager::getInstance()->executeStatement($statement);
     }
 }

@@ -31,7 +31,7 @@ class Insert {
      * @param string $modelTableName
      */
     protected function __construct($modelTableName){
-        $this->modelTable = \Pvik\Database\ORM\ModelTable::Get($modelTableName);
+        $this->modelTable = \Pvik\Database\ORM\ModelTable::get($modelTableName);
     }
     /**
      * Sets a field with a value.
@@ -53,7 +53,7 @@ class Insert {
         
         $statement = $statementBuilder->generate(array(
             'fields' => $this->fields,
-            'table' => $this->modelTable->GetTableName(),
+            'table' => $this->modelTable->getTableName(),
         ));
         return $statement;
     }
@@ -63,6 +63,6 @@ class Insert {
      */
     public function execute(){
         $statement = $this->getStatement();
-        return \Pvik\Database\SQL\Manager::GetInstance()->ExecuteStatement($statement);
+        return \Pvik\Database\SQL\Manager::getInstance()->executeStatement($statement);
     }
 }

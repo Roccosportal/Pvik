@@ -11,14 +11,14 @@ class Config {
      * Contains the config values
      * @var array 
      */
-    public static $Config;
+    public static $config;
 
     /**
      * Loads a file into the config
-     * @param string $Path 
+     * @param string $path 
      */
-    public static function Load($Path) {
-        require($Path);
+    public static function load($path) {
+        require($path);
     }
 
 }

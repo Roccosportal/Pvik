@@ -11,73 +11,73 @@ abstract class Manager {
      * Contains the current instance of a manager according to the selected database type.
      * @var Manager 
      */
-    protected static $Instance = null;
+    protected static $instance = null;
     
     /**
      * Get the current instance of the sql manager
      * @return Manager 
      */
-    public static function GetInstance(){
-            if(self::$Instance == null){
+    public static function getInstance(){
+            if(self::$instance == null){
                 $adapterClassName  = \Pvik\Database\Adapter\Adapter::getAdapterClassName('Manager');
                 if($adapterClassName){
-                    self::$Instance = new $adapterClassName();
+                    self::$instance = new $adapterClassName();
                 }
                 else {
                     throw new \Exception();
                 }
             }
 
-            return self::$Instance;
+            return self::$instance;
     }
 
      /**
      * Executes a statement.
-     * @param string $QueryString
+     * @param string $queryString
      * @return mixed 
      */
-    abstract public function Execute($SqlStatement);
+    abstract public function execute($sqlStatement);
     
       /**
      *  Returns the last inserted id
      * @return mixed 
      */
-    abstract public function GetLastInsertedId();
+    abstract public function getLastInsertedId();
     
        /**
      *  Escapes a string.
-     * @param string $String
+     * @param string $string
      * @return string
      */
-    abstract public  function EscapeString($String);
+    abstract public  function escapeString($string);
     
       /**
      *  Fetches an associative array from a database result
-     * @param mixed $Result
+     * @param mixed $result
      * @return array
      */
-     abstract public  function FetchAssoc($Result);
+     abstract public  function fetchAssoc($result);
 
   
-     public function ExecuteStatement(Statement\Statement $statement){
-        $ConvertedParameters = $this->ConvertParameters($statement->getParameters());
-        $SqlStatement = vsprintf($statement->getStatement(), $ConvertedParameters);
-        return $this->Execute($SqlStatement);
+     public function executeStatement(Statement\Statement $statement){
+        $convertedParameters = $this->convertParameters($statement->getParameters());
+        $sqlStatement = vsprintf($statement->getStatement(), $convertedParameters);
+        return $this->execute($sqlStatement);
      }
      
    
 
     /**
      * Escape parameters.
-     * @param array $Parameters
+     * @param array $parameters
      * @return array 
      */
-    public function ConvertParameters(array $Parameters) {
-        $ConvertedParameters = array();
-        foreach ($Parameters as $Parameter) {
-            array_push($ConvertedParameters, $this->EscapeString(Type::convertValue($Parameter)));
+    public function convertParameters(array $parameters) {
+        $convertedParameters = array();
+        foreach ($parameters as $parameter) {
+            array_push($convertedParameters, $this->escapeString(Type::convertValue($parameter)));
         }
-        return $ConvertedParameters;
+        return $convertedParameters;
     }
     
  

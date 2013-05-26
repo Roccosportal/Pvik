@@ -11,105 +11,105 @@ class Request {
      * Contains the current url.
      * @var string 
      */
-    protected $Url;
+    protected $url;
 
     /**
      * Contains the parameters from the current url
      * @var \Pvik\Utils\KeyValueArray 
      */
-    protected $Parameters;
+    protected $parameters;
 
     /**
      * Contains the current route.
      * @var array 
      */
-    protected $Route;
+    protected $route;
 
     /**
      * 
      */
     public function __construct() {
-        $this->Parameters = new \Pvik\Utils\KeyValueArray();
+        $this->parameters = new \Pvik\Utils\KeyValueArray();
     }
 
     /**
      * Returns the current url
      * @return string
      */
-    public function GetUrl() {
-        return $this->Url;
+    public function getUrl() {
+        return $this->url;
     }
 
     /**
      * Sets the current url
-     * @param string $Url
+     * @param string $url
      */
-    public function SetUrl($Url) {
-        $this->Url = $Url;
+    public function setUrl($url) {
+        $this->url = $url;
     }
 
     /**
      * Sets the current route.
-     * @param type $Route
+     * @param type $route
      */
-    public function SetRoute(array $Route) {
-        $this->Route = $Route;
+    public function setRoute(array $route) {
+        $this->route = $route;
     }
 
     /**
      * Returns the current route
      * @return array
      */
-    public function GetRoute() {
-        return $this->Route;
+    public function getRoute() {
+        return $this->route;
     }
 
     /**
      * Returns the current parameters from the url
      * @return \Pvik\Utils\KeyValueArray
      */
-    public function GetParameters() {
-        return $this->Parameters;
+    public function getParameters() {
+        return $this->parameters;
     }
 
     /**
      * Returns a $_POST value or null.
-     * @param string $Key
+     * @param string $key
      * @return string 
      */
-    public function GetPOST($Key) {
-        if ($this->IsPOST($Key)) {
-            return $_POST[$Key];
+    public function getPOST($key) {
+        if ($this->isPOST($key)) {
+            return $_POST[$key];
         }
         return null;
     }
 
     /**
      * Checks if a $_POST value is set.
-     * @param string $Key
+     * @param string $key
      * @return bool 
      */
-    public function IsPOST($Key) {
-        return isset($_POST[$Key]);
+    public function isPOST($key) {
+        return isset($_POST[$key]);
     }
 
     /**
      * Checks if a $_GET value is set.
-     * @param string $Key
+     * @param string $key
      * @return bool 
      */
-    public function IsGET($Key) {
-        return isset($_GET[$Key]);
+    public function isGET($key) {
+        return isset($_GET[$key]);
     }
 
     /**
      * Returns a $_GET value or null.
-     * @param string $Key
+     * @param string $key
      * @return string 
      */
-    public function GetGET($Key) {
-        if ($this->IsGET($Key)) {
-            return $_GET[$Key];
+    public function getGET($key) {
+        if ($this->isGET($key)) {
+            return $_GET[$key];
         }
         return null;
     }
@@ -118,16 +118,16 @@ class Request {
      * Is set to true if a sessions was started.
      * @var bool 
      */
-    protected static $SessionStarted = false;
+    protected static $sessionStarted = false;
 
     /**
      * Starts a session if not already started.
      * Use this function to prevent multiple session starts.
      */
-    public function SessionStart() {
-        if (!self::$SessionStarted) {
+    public function sessionStart() {
+        if (!self::$sessionStarted) {
             session_start();
-            self::$SessionStarted = true;
+            self::$sessionStarted = true;
         }
     }
 

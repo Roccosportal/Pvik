@@ -6,11 +6,11 @@ class Adapter {
     
     
    public static function getAdapterClassName($className){
-        if (!isset(Config::$Config['Database']) || !isset(Config::$Config['Database']['Path'])) {
+        if (!isset(Config::$config['Database']) || !isset(Config::$config['Database']['Path'])) {
            return null;
           
         }
-        $className =Config::$Config['Database']['Path'] . $className;
+        $className =Config::$config['Database']['Path'] . $className;
             
         if(!class_exists($className)){
                return null;

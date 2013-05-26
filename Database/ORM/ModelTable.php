@@ -13,30 +13,30 @@ class ModelTable {
      * Contains the instances of loaded ModelTables
      * @var array 
      */
-    protected static $ModelTables = array();
+    protected static $modelTables = array();
 
     /**
      * Gets a ModelTable instance or creates a new one if a instance doesn't exsists yet.
      * @return ModelTable
      */
-    public static function Get($ModelTableName) {
-        if (!is_string($ModelTableName)) {
+    public static function get($modelTableName) {
+        if (!is_string($modelTableName)) {
             throw new \Exception('ModelTableName must be a string.');
         }
         // instance already stored
-        if (isset(self::$ModelTables[$ModelTableName])) {
-            return self::$ModelTables[$ModelTableName];
+        if (isset(self::$modelTables[$modelTableName])) {
+            return self::$modelTables[$modelTableName];
         } else {
             // create new instance
 
-            $ClassName = $ModelTableName;
-            if ($ClassName[0] !== '\\') {
-                $ClassName = Config::$Config['DefaultNamespace'] . Config::$Config['DefaultNamespaceModelTable'] . '\\' . $ClassName;
+            $className = $modelTableName;
+            if ($className[0] !== '\\') {
+                $className = Config::$config['DefaultNamespace'] . Config::$config['DefaultNamespaceModelTable'] . '\\' . $className;
             }
 
-            $Instance = new $ClassName();
-            self::$ModelTables[$ModelTableName] = $Instance;
-            return $Instance;
+            $instance = new $className();
+            self::$modelTables[$modelTableName] = $instance;
+            return $instance;
         }
     }
 
@@ -46,73 +46,73 @@ class ModelTable {
      * Filled in a child class.
      * @var array 
      */
-    protected $FieldDefinition;
+    protected $fieldDefinition;
 
     /**
      * Contains the real table name.
      * Filled in a child class.
      * @var string 
      */
-    protected $TableName;
+    protected $tableName;
 
     /**
      * Contains the name of the primary key.
      * Whether filled in a chilled class or filled after running the method GetPrimaryKeyName().
      * @var string 
      */
-    protected $PrimaryKeyName;
+    protected $primaryKeyName;
 
     /**
      *  Contains the cache class
      * @var CacheModelTable 
      */
-    protected $Cache;
+    protected $cache;
 
     /**
      * Contains the name of the ModelTable.
      * @var type 
      */
-    protected $ModelTableName;
+    protected $modelTableName;
 
     /**
      * A instance of the field definition helper.
      * @var FieldDefinitionHelper 
      */
-    protected $FieldDefinitionHelper;
+    protected $fieldDefinitionHelper;
 
     /**
      * Contains the name of the Model that belongs to this ModelTable.
      * Filled in a child class.
      * @var string 
      */
-    protected $EntityName;
+    protected $entityName;
 
     /**
      *
      * @return Pvik\Database\Cache\ModelTable
      */
-    public function GetCache() {
-        if ($this->Cache === null) {
-            $this->Cache = new \Pvik\Database\Cache\ModelTable($this);
+    public function getCache() {
+        if ($this->cache === null) {
+            $this->cache = new \Pvik\Database\Cache\ModelTable($this);
         }
-        return $this->Cache;
+        return $this->cache;
     }
 
     /**
      * Returns the PrimaryKey name.
      * @return string 
      */
-    public function GetPrimaryKeyName() {
-        if ($this->PrimaryKeyName != null) {
-            return $this->PrimaryKeyName;
+    public function getPrimaryKeyName() {
+        if ($this->primaryKeyName != null) {
+            return $this->primaryKeyName;
         } else {
-            $Helper = $this->GetFieldDefinitionHelper();
+            $helper = $this->getFieldDefinitionHelper();
             // try to find primary key
-            foreach ($Helper->GetFieldList() as $FieldName) {
-                if ($Helper->IsTypePrimaryKey($FieldName)) {
+            foreach ($helper->getFieldList() as $fieldName) {
+                if ($helper->isTypePrimaryKey($fieldName)) {
                     // primary key found
-                    $this->PrimaryKeyName = $Key;
-                    return $this->PrimaryKeyName;
+                    $this->primaryKeyName = $key;
+                    return $this->primaryKeyName;
                 }
             }
         }
@@ -123,55 +123,55 @@ class ModelTable {
      * Returns the real table name.
      * @return string 
      */
-    public function GetTableName() {
-        return $this->TableName;
+    public function getTableName() {
+        return $this->tableName;
     }
 
     /**
      * Returns the name of the Model that belongs to this ModelTable.
      * @return string 
      */
-    public function GetEntityName() {
-        if (empty($this->EntityName)) {
+    public function getEntityName() {
+        if (empty($this->entityName)) {
             throw new \Exception('EntityName not set up for ' . get_class($this));
         }
-        return $this->EntityName;
+        return $this->entityName;
     }
 
     /**
      * Returns the name of the Model class that belongs to this ModelTable.
      * @return string 
      */
-    public function GetEntityClassName() {
-        $EntityClassName = $this->GetEntityName();
-        if ($EntityClassName[0] !== '\\') {
-            $EntityClassName = Config::$Config['DefaultNamespace'] . Config::$Config['DefaultNamespaceEntity'] . '\\' . $EntityClassName;
+    public function getEntityClassName() {
+        $entityClassName = $this->getEntityName();
+        if ($entityClassName[0] !== '\\') {
+            $entityClassName = Config::$config['DefaultNamespace'] . Config::$config['DefaultNamespaceEntity'] . '\\' . $entityClassName;
         }
-        return $EntityClassName;
+        return $entityClassName;
     }
 
     /**
      * Returns the name of the ModelTable withouth the suffix ModelTable.
      * @return string 
      */
-    public function GetModelTableName() {
-        if ($this->ModelTableName == null) {
-            $Class = explode('\\', get_class($this));
-            $this->ModelTableName = end($Class);
+    public function getModelTableName() {
+        if ($this->modelTableName == null) {
+            $class = explode('\\', get_class($this));
+            $this->modelTableName = end($class);
         }
-        return $this->ModelTableName;
+        return $this->modelTableName;
     }
 
     /**
      * Returns a instance of a field definition helper or creates a new one.
      * @return FieldDefinitionHelper 
      */
-    public function GetFieldDefinitionHelper() {
+    public function getFieldDefinitionHelper() {
         // just use one instance
-        if ($this->FieldDefinitionHelper == null) {
-            $this->FieldDefinitionHelper = new FieldDefinitionHelper($this->FieldDefinition, $this);
+        if ($this->fieldDefinitionHelper == null) {
+            $this->fieldDefinitionHelper = new FieldDefinitionHelper($this->fieldDefinition, $this);
         }
-        return $this->FieldDefinitionHelper;
+        return $this->fieldDefinitionHelper;
     }
 
     /**
@@ -179,121 +179,124 @@ class ModelTable {
      * 
      * @return EntityArray 
      */
-    public function SelectAll() {
+    public function selectAll() {
         // creating a new query without any conditions
         $queryBuilder = $this->getEmptyQueryBuilder();
         return $queryBuilder->select();
     }
-    
+    /**
+     * 
+     * @return Query\Builder\Select
+     */
     public function getEmptySelectBuilder(){
-        return Query\Builder\Select::getEmptyInstance($this->GetModelTableName());
+        return Query\Builder\Select::getEmptyInstance($this->getModelTableName());
     }
 
     /**
      * Select a EntityArray from database by primary keys.
-     * @param array $PrimaryKeys
+     * @param array $primaryKeys
      * @return EntityArray 
      */
-    public function SelectByPrimaryKeys(array $PrimaryKeys) {
+    public function selectByPrimaryKeys(array $primaryKeys) {
         $queryBuilder = $this->getEmptySelectBuilder();
-        $queryBuilder->where($this->GetTableName() . '.' .$this->GetPrimaryKeyName(). ' IN (%s)');
-        $queryBuilder->addParameter($PrimaryKeys);
+        $queryBuilder->where($this->getTableName() . '.' .$this->getPrimaryKeyName(). ' IN (%s)');
+        $queryBuilder->addParameter($primaryKeys);
         return $queryBuilder->select();
     }
 
     /**
      * Select a Entity from database by its primary key.
-     * @param string $PrimaryKey
+     * @param string $primaryKey
      * @return Entity 
      */
-    public function SelectByPrimaryKey($PrimaryKey) {
+    public function selectByPrimaryKey($primaryKey) {
         $queryBuilder = $this->getEmptySelectBuilder();
-        $queryBuilder->where($this->GetTableName() . '.' . $this->GetPrimaryKeyName() . ' = %s');
-        $queryBuilder->addParameter($PrimaryKey);
+        $queryBuilder->where($this->getTableName() . '.' . $this->getPrimaryKeyName() . ' = %s');
+        $queryBuilder->addParameter($primaryKey);
         return $queryBuilder->selectSingle();
     }
 
     /**
      * Returns a Entity from cache or from database by its primary key.
-     * @param string $PrimaryKey
+     * @param string $primaryKey
      * @return Entity 
      */
-    public function LoadByPrimaryKey($PrimaryKey) {
-        if (!is_string($PrimaryKey) && !is_int($PrimaryKey)) {
+    public function loadByPrimaryKey($primaryKey) {
+        if (!is_string($primaryKey) && !is_int($primaryKey)) {
             throw new \Exception('primary key must be a string or int');
         }
-        if ($PrimaryKey === 0 || $PrimaryKey === null || $PrimaryKey === '') {
+        if ($primaryKey === 0 || $primaryKey === null || $primaryKey === '') {
             return null;
         } else {
             // search in cache
-            $CacheInstance = $this->GetCache()->LoadByPrimaryKey($PrimaryKey);
-            if ($CacheInstance != null) {
-                return $CacheInstance;
+            $cacheInstance = $this->getCache()->loadByPrimaryKey($primaryKey);
+            if ($cacheInstance != null) {
+                return $cacheInstance;
             } else {
                 // get via select
-                return $this->SelectByPrimaryKey($PrimaryKey);
+                return $this->selectByPrimaryKey($primaryKey);
             }
         }
     }
 
     /**
      * Returns a EntityArray from cache or database by the primary keys.
-     * @param array $Keys
+     * @param array $keys
      * @return EntityArray 
      */
-    public function LoadByPrimaryKeys(array $Keys) {
+    public function loadByPrimaryKeys(array $keys) {
         // convert to array
-        $List = new EntityArray();
-        $List->SetModelTable($this);
-        $LoadKeys = array();
-        foreach ($Keys as $Key) {
-            if (!empty($Key)) {
+        $list = new EntityArray();
+        $list->setModelTable($this);
+        $loadKeys = array();
+        foreach ($keys as $key) {
+            if (!empty($key)) {
                 // search in cache
-                $Item = $this->GetCache()->LoadByPrimaryKey($Key);
+                $item = $this->getCache()->loadByPrimaryKey($key);
                 // mark for loading later
-                if ($Item == null) {
-                    array_push($LoadKeys, $Key);
+                if ($item == null) {
+                    array_push($loadKeys, $key);
                 } else {
-                    $List->append($Item);
+                    $list->append($item);
                 }
             }
         }
-        if (!empty($LoadKeys)) {
+        if (!empty($loadKeys)) {
             // now load every data we didn't find in the cache
-            $LoadedItems = $this->SelectByPrimaryKeys($LoadKeys);
-            foreach ($LoadedItems as $LoadedItem) {
-                $List->append($LoadedItem);
+            $loadedItems = $this->selectByPrimaryKeys($loadKeys);
+            foreach ($loadedItems as $loadedItem) {
+                $list->append($loadedItem);
             }
         }
-        return $List;
+        return $list;
     }
 
     /**
      *  Returns all Entities from cache or from database.
      *  @return EntityArray
      */
-    public function LoadAll() {
-        if (!$this->GetCache()->IsLoadedAll()) {
-            return $this->SelectAll();
+    public function loadAll() {
+        if (!$this->getCache()->isLoadedAll()) {
+            return $this->selectAll();
         }
-        return $this->GetCache()->GetEntityArrayAll();
+        return $this->getCache()->getEntityArrayAll();
     }
     
     
     /**
      * Creates a EntityArray from a select statemet result
-     * @param array $Parameters
+     * @param array $parameters
      * @return \Pvik\Database\ORM\EntityArray 
      */
-    public function FillEntityArray($result) {
-        $List = new \Pvik\Database\ORM\EntityArray();
-        $List->SetModelTable($this);
-        while ($Data = Manager::GetInstance()->FetchAssoc($result)) {
-            $Classname = $this->GetEntityClassName();
-            $Model = new $Classname();
-            $Model->Fill($Data);
-            $List->append($Model);
+    public function fillEntityArray($result) {
+        $list = new \Pvik\Database\ORM\EntityArray();
+        $list->setModelTable($this);
+        while ($data = Manager::getInstance()->fetchAssoc($result)) {
+            $classname = $this->getEntityClassName();
+            $model = new $classname();
+            $model->fill($data);
+            $list->append($model);
         }
-        return $List;
+        return $list;
     }
 }

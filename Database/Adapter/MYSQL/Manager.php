@@ -14,19 +14,19 @@ class Manager extends \Pvik\Database\SQL\Manager {
      * Contains the connection to the database.
      * @var mixed 
      */
-    protected $Connection;
+    protected $connection;
 
     /**
      * Connect to the database
      */
     protected function __construct() {
-        $MySQL = \Pvik\Core\Config::$Config['MySQL'];
-        $this->Connection = mysql_connect($MySQL['Server'], $MySQL['Username'], $MySQL['Password']);
-        if (!$this->Connection) {
+        $mySQL = \Pvik\Core\Config::$config['MySQL'];
+        $this->connection = mysql_connect($mySQL['Server'], $mySQL['Username'], $mySQL['Password']);
+        if (!$this->connection) {
             throw new \Exception('Database error: ' . mysql_error());
         } else {
-            mysql_set_charset('utf8', $this->Connection);
-            if (!mysql_select_db($MySQL['Database'])) {
+            mysql_set_charset('utf8', $this->connection);
+            if (!mysql_select_db($mySQL['Database'])) {
                 throw new \Exception('Database error: ' . mysql_error());
             }
         }
@@ -34,42 +34,42 @@ class Manager extends \Pvik\Database\SQL\Manager {
 
     /**
      * Executes a statement.
-     * @param string $QueryString
+     * @param string $queryString
      * @return mixed 
      */
-    public function Execute($QueryString) {
-        Log::WriteLine('Executing querystring: ' . $QueryString);
-        $Result = mysql_query($QueryString);
-        if (!$Result) {
-            throw new \Exception('Could not execute following statement: ' . $QueryString . "\n" . 'MySQLError: ' . mysql_error());
+    public function execute($queryString) {
+        Log::writeLine('Executing querystring: ' . $queryString);
+        $result = mysql_query($queryString);
+        if (!$result) {
+            throw new \Exception('Could not execute following statement: ' . $queryString . "\n" . 'MySQLError: ' . mysql_error());
         }
-        return $Result;
+        return $result;
     }
 
     /**
      *  Returns the last inserted id
      * @return mixed 
      */
-    public function GetLastInsertedId() {
+    public function getLastInsertedId() {
         return mysql_insert_id();
     }
 
     /**
      *  Escapes a string.
-     * @param string $String
+     * @param string $string
      * @return string
      */
-    public function EscapeString($String) {
-        return mysql_escape_string($String);
+    public function escapeString($string) {
+        return mysql_escape_string($string);
     }
 
     /**
      *  Fetches an associative array from a database result
-     * @param mixed $Result
+     * @param mixed $result
      * @return array
      */
-    public function FetchAssoc($Result) {
-        return mysql_fetch_assoc($Result);
+    public function fetchAssoc($result) {
+        return mysql_fetch_assoc($result);
     }
 
 }

@@ -13,7 +13,7 @@ class ErrorManager {
     /**
      * Initialize the error manager
      */
-    public static function Init() {
+    public static function init() {
         set_error_handler(array('\\Pvik\Web\\ErrorManager', 'CaptureError'));
         set_exception_handler(array('\\Pvik\Web\\ErrorManager', 'CaptureException'));
     }
@@ -26,41 +26,41 @@ class ErrorManager {
      * @param type $errline
      * @throws \ErrorException
      */
-    public static function CaptureError($errno, $errstr, $errfile, $errline) {
+    public static function captureError($errno, $errstr, $errfile, $errline) {
         throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
     }
 
     /**
      * Captures a non captured exception and shows an error page
-     * @param \Exception $Exception
+     * @param \Exception $exception
      */
-    public static function CaptureException(\Exception $Exception) {
+    public static function captureException(\Exception $exception) {
         // delete output buffer and ignore it
         ob_get_clean();
-        self::ShowErrorPage($Exception);
+        self::showErrorPage($exception);
     }
 
     /**
      * Tries to show an error page for an exception.
-     * @param \Exception $Exception 
+     * @param \Exception $exception 
      */
-    public static function ShowErrorPage(\Exception $Exception) {
+    public static function showErrorPage(\Exception $exception) {
         try {
-            $ExceptionClass = get_class($Exception);
-            $ErrorPages = Config::$Config['ErrorPages'];
-            if (isset($ErrorPages[$ExceptionClass])) {
-                $File = Path::RealPath($ErrorPages[$ExceptionClass]);
-                if (file_exists($File)) {
-                    self::ExecuteErrorPage($Exception, $File);
+            $exceptionClass = get_class($exception);
+            $errorPages = Config::$config['ErrorPages'];
+            if (isset($errorPages[$exceptionClass])) {
+                $file = Path::realPath($errorPages[$exceptionClass]);
+                if (file_exists($file)) {
+                    self::executeErrorPage($exception, $file);
                 } else {
-                    throw new \Exception('Erropage ' . $File . ' not found');
+                    throw new \Exception('Erropage ' . $file . ' not found');
                 }
             } else {
-                $File = Path::RealPath($ErrorPages['Default']);
-                if (file_exists($File)) {
-                    self::ExecuteErrorPage($Exception, $File);
+                $file = Path::realPath($errorPages['Default']);
+                if (file_exists($file)) {
+                    self::executeErrorPage($exception, $file);
                 } else {
-                    throw new \Exception('Erropage ' . $File . ' not found');
+                    throw new \Exception('Erropage ' . $file . ' not found');
                 }
             }
         } catch (Exception $ex) {
@@ -70,11 +70,11 @@ class ErrorManager {
 
     /**
      * Executes the error page file.
-     * @param \Exception $Exception
-     * @param type $File 
+     * @param \Exception $exception
+     * @param type $file 
      */
-    protected static function ExecuteErrorPage(\Exception $Exception, $File) {
-        require($File);
+    protected static function executeErrorPage(\Exception $exception, $file) {
+        require($file);
     }
 
 }

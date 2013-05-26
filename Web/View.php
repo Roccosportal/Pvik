@@ -16,93 +16,93 @@ class View {
      * Contains the path to a master page if set up.
      * @var string 
      */
-    protected $MasterPagePath = null;
+    protected $masterPagePath = null;
 
     /**
      * Contains the differnt areas of content if the view uses a master page.
      * @var KeyValueArray 
      */
-    protected $Contents;
+    protected $contents;
 
     /**
      * Contains the id of the current content area.
      * @var string 
      */
-    protected $CurrentContentId = null;
+    protected $currentContentId = null;
 
     /**
      * Contains the controller that executed this view.
      * @var Controller 
      */
-    protected $Controller = null;
+    protected $controller = null;
 
     /**
      * Contains the view data from the controller
      * @var type 
      */
-    protected $ViewData = null;
+    protected $viewData = null;
 
     /**
      * Contains the path to the partial view
      * @var type 
      */
-    protected $ViewPath = null;
+    protected $viewPath = null;
 
     /**
      * Contains the Html Helper.
      * @var ViewHelpers\HtmlHelper
      */
-    protected $Helper = null;
+    protected $helper = null;
 
     /**
      *
-     * @param string $ViewPath
-     * @param Controller $Controller 
+     * @param string $viewPath
+     * @param Controller $controller 
      */
-    public function __construct($ViewPath, Controller $Controller) {
-        $this->Contents = new KeyValueArray();
-        $this->ViewPath = $ViewPath;
-        $this->Controller = $Controller;
+    public function __construct($viewPath, Controller $controller) {
+        $this->contents = new KeyValueArray();
+        $this->viewPath = $viewPath;
+        $this->controller = $controller;
 
-        $this->ViewData = $this->Controller->GetViewData();
+        $this->viewData = $this->controller->getViewData();
         $this->Helper = new \Pvik\Web\ViewHelpers\HtmlHelper();
-        $this->ExecutePartialCode($this->ViewPath);
+        $this->executePartialCode($this->viewPath);
 
-        if ($this->MasterPagePath != null) {
-            Log::WriteLine('Executing masterpage: ' . $this->MasterPagePath);
-            $BaseMasterPage = new MasterPage($this->RealPath($this->MasterPagePath), $this);
+        if ($this->masterPagePath != null) {
+            Log::writeLine('Executing masterpage: ' . $this->masterPagePath);
+            $baseMasterPage = new MasterPage($this->realPath($this->masterPagePath), $this);
         }
     }
 
     /**
      * Executes the partial view.
      */
-    protected function ExecutePartialCode($ViewPath) {
-        if (!file_exists($ViewPath)) {
-            throw new \Exception('View file doesn\'t exist: ' . $ViewPath);
+    protected function executePartialCode($viewPath) {
+        if (!file_exists($viewPath)) {
+            throw new \Exception('View file doesn\'t exist: ' . $viewPath);
         }
         // include partial code
-        require($ViewPath);
+        require($viewPath);
     }
 
     /**
      * Defines the master page.
-     * @param type $MasterPagePath 
+     * @param type $masterPagePath 
      */
-    protected function UseMasterPage($MasterPagePath) {
-        $this->MasterPagePath = $MasterPagePath;
+    protected function useMasterPage($masterPagePath) {
+        $this->masterPagePath = $masterPagePath;
     }
 
     /**
      * Starts to fetch a content area.
-     * @param type $ContentId 
+     * @param type $contentId 
      */
-    protected function StartContent($ContentId) {
-        if ($this->MasterPagePath != null) {
+    protected function startContent($contentId) {
+        if ($this->masterPagePath != null) {
             // delete old content that is outside of the content tags
             ob_get_clean();
             // set the content id and start getting all output content
-            $this->CurrentContentId = $ContentId;
+            $this->currentContentId = $contentId;
             ob_start();
         }
     }
@@ -110,11 +110,11 @@ class View {
     /**
      * Ends to fetch a content area and safes it into the Contents array.
      */
-    protected function EndContent() {
-        if ($this->MasterPagePath != null && $this->CurrentContentId != null) {
+    protected function endContent() {
+        if ($this->masterPagePath != null && $this->currentContentId != null) {
             // save the output content in a array to pass it to the masterpage
-            $this->Contents->Set($this->CurrentContentId, ob_get_clean());
-            $this->CurrentContentId = null;
+            $this->contents->set($this->currentContentId, ob_get_clean());
+            $this->currentContentId = null;
             // start output buffering
             // if we use a masterpage every content have to be between content tags
             // we buffer contents outside of tags to ignore it
@@ -126,34 +126,34 @@ class View {
      * Returns the content areas if the view used a master page.
      * @return KeyValueArray
      */
-    public function GetContents() {
-        return $this->Contents;
+    public function getContents() {
+        return $this->contents;
     }
 
     /**
      * Returns the view data.
      * @return KeyValueArray 
      */
-    public function GetViewData() {
-        return $this->ViewData;
+    public function getViewData() {
+        return $this->viewData;
     }
 
     /**
-     * Shortcut to Path::RelativePath function
-     * @param string $Path
+     * Shortcut to Path::relativePath function
+     * @param string $path
      * @return string
      */
-    protected function RelativePath($Path) {
-        return Path::RelativePath($Path);
+    protected function relativePath($path) {
+        return Path::relativePath($path);
     }
 
     /**
-     * Shortcut to Path::RealPath function
-     * @param string $Path
+     * Shortcut to Path::realPath function
+     * @param string $path
      * @return string
      */
-    protected function RealPath($Path) {
-        return Path::RealPath($Path);
+    protected function realPath($path) {
+        return Path::realPath($path);
     }
 
 }

@@ -16,22 +16,22 @@ class RouteManager {
      * Starts the route manager
      * @throws \Pvik\Web\NoRouteFoundException
      */
-    public function Start() {
-        if (Config::$Config['UnderConstruction']['Enabled'] == true) {
-            $this->ExecuteUnderConstruction(Path::RealPath(Config::$Config['UnderConstruction']['Path']));
+    public function start() {
+        if (Config::$config['UnderConstruction']['Enabled'] == true) {
+            $this->executeUnderConstruction(Path::realPath(Config::$config['UnderConstruction']['Path']));
         } else {
-            //Request::GetInstance()->FetchUrl();
-            $Request = $this->FindRoute();
-            if ($Request != null) {
+            //Request::getInstance()->fetchUrl();
+            $request = $this->findRoute();
+            if ($request != null) {
                 // start output buffering
                 ob_start();
-                $Route = $Request->GetRoute();
+                $route = $request->getRoute();
                 // execute controller
-                ControllerManager::ExecuteController($Route['Controller'], $Route['Action'], $Request);
+                ControllerManager::executeController($route['Controller'], $route['Action'], $request);
                 // end output buffering and output the buffer
                 echo ob_get_clean();
             } else {
-                throw new \Pvik\Web\NoRouteFoundException('No route found for ' . $this->Url);
+                throw new \Pvik\Web\NoRouteFoundException('No route found for ' . $this->url);
             }
         }
     }
@@ -40,17 +40,17 @@ class RouteManager {
      * Returns the route for the current url.
      * @return Request. 
      */
-    protected function FindRoute() {
-        if (!isset(Config::$Config['Routes'])) {
+    protected function findRoute() {
+        if (!isset(Config::$config['Routes'])) {
             throw new \Exception('No Routes found in config. Probably misconfigured config.');
         }
 
-        $Routes = Config::$Config['Routes'];
-        $Url = $this->FetchUrl();
-        foreach ($Routes as $Route) {
-            $Request = $this->UrlIsMatching($Url, $Route);
-            if ($Request != null) {
-                return $Request;
+        $routes = Config::$config['Routes'];
+        $url = $this->fetchUrl();
+        foreach ($routes as $route) {
+            $request = $this->urlIsMatching($url, $route);
+            if ($request != null) {
+                return $request;
             }
         }
 
@@ -59,54 +59,54 @@ class RouteManager {
 
     /**
      * Checks if a url matches with an route. 
-     * @param string $OrignalUrl
-     * @param array $Route
+     * @param string $orignalUrl
+     * @param array $route
      * @return bool
      */
-    protected function UrlIsMatching($OrignalUrl, $Route) {
-        $RouteUrl = $Route['Url'];
-        if ($RouteUrl == '*' || strtolower($OrignalUrl) == $RouteUrl) {
-            $Request = new Request();
-            $Request->SetRoute($Route);
-            $Request->SetUrl($OrignalUrl);
+    protected function urlIsMatching($orignalUrl, $route) {
+        $routeUrl = $route['Url'];
+        if ($routeUrl == '*' || strtolower($orignalUrl) == $routeUrl) {
+            $request = new Request();
+            $request->setRoute($route);
+            $request->setUrl($orignalUrl);
 
-            return $Request;
-        } elseif (strpos($RouteUrl, '{') !== false && strpos($RouteUrl, '}') !== false) { // contains a variable
-            $RouteUrlParts = explode('/', $RouteUrl);
-            $OrignalUrlParts = explode('/', $OrignalUrl);
+            return $request;
+        } elseif (strpos($routeUrl, '{') !== false && strpos($routeUrl, '}') !== false) { // contains a variable
+            $routeUrlParts = explode('/', $routeUrl);
+            $orignalUrlParts = explode('/', $orignalUrl);
             // have the same part length
-            if (count($RouteUrlParts) == count($OrignalUrlParts)) {
-                for ($Index = 0; $Index < count($RouteUrlParts); $Index++) {
-                    if (strlen($RouteUrlParts[$Index]) >= 3 && $RouteUrlParts[$Index][0] == '{') { // it's a variable 
-                        $Key = substr($RouteUrlParts[$Index], 1, -1);
-                        if (isset($Route['Parameters'][$Key]) && !preg_match($Route['Parameters'][$Key], $OrignalUrlParts[$Index])) {
+            if (count($routeUrlParts) == count($orignalUrlParts)) {
+                for ($index = 0; $index < count($routeUrlParts); $index++) {
+                    if (strlen($routeUrlParts[$index]) >= 3 && $routeUrlParts[$index][0] == '{') { // it's a variable 
+                        $key = substr($routeUrlParts[$index], 1, -1);
+                        if (isset($route['Parameters'][$key]) && !preg_match($route['Parameters'][$key], $orignalUrlParts[$index])) {
                             return null;
                         }
-                    } else if (strtolower($RouteUrlParts[$Index]) != $OrignalUrlParts[$Index]) {
+                    } else if (strtolower($routeUrlParts[$index]) != $orignalUrlParts[$index]) {
                         // not matching
                         return null;
                     }
                 }
-                Log::WriteLine('Route matching: ' . $Route['Url']);
-                $Request = new Request();
-                $Request->SetRoute($Route);
-                $Request->SetUrl($OrignalUrl);
+                Log::writeLine('Route matching: ' . $route['Url']);
+                $request = new Request();
+                $request->setRoute($route);
+                $request->setUrl($orignalUrl);
                 // matching successfull
                 // save url parameter
-                for ($Index = 0; $Index < count($RouteUrlParts); $Index++) {
-                    if (strlen($RouteUrlParts[$Index]) >= 3 && $RouteUrlParts[$Index][0] == '{') { // it's a variable
+                for ($index = 0; $index < count($routeUrlParts); $index++) {
+                    if (strlen($routeUrlParts[$index]) >= 3 && $routeUrlParts[$index][0] == '{') { // it's a variable
                         // the key is the name between the brakets
-                        $Key = substr($RouteUrlParts[$Index], 1, -1);
+                        $key = substr($routeUrlParts[$index], 1, -1);
                         // add to url parameters
-                        $Request->GetParameters()->Add($Key, $OrignalUrlParts[$Index]);
-                        if (isset($Route['Parameters'][$Key])) {
-                            Log::WriteLine('Url parameter: ' . $Key . ' -> ' . $Route['Parameters'][$Key] . ' -> ' . $OrignalUrlParts[$Index]);
+                        $request->getParameters()->add($key, $orignalUrlParts[$index]);
+                        if (isset($route['Parameters'][$key])) {
+                            Log::writeLine('Url parameter: ' . $key . ' -> ' . $route['Parameters'][$key] . ' -> ' . $orignalUrlParts[$index]);
                         } else {
-                            Log::WriteLine('Url parameter: ' . $Key . ' -> ' . $OrignalUrlParts[$Index]);
+                            Log::writeLine('Url parameter: ' . $key . ' -> ' . $orignalUrlParts[$index]);
                         }
                     }
                 }
-                return $Request;
+                return $request;
             }
         }
         return null;
@@ -116,40 +116,40 @@ class RouteManager {
      * Fetches the current url and converts it to a pretty url
      * @return string
      */
-    protected function FetchUrl() {
+    protected function fetchUrl() {
         // get the file base
-        $RequestUri = $_SERVER['REQUEST_URI'];
+        $requestUri = $_SERVER['REQUEST_URI'];
         // Delete Parameters
-        $QueryStringPos = strpos($RequestUri, '?');
-        If ($QueryStringPos !== false) {
-            $RequestUri = substr($RequestUri, 0, $QueryStringPos);
+        $queryStringPos = strpos($requestUri, '?');
+        If ($queryStringPos !== false) {
+            $requestUri = substr($requestUri, 0, $queryStringPos);
         }
         // urldecode for example cyrillic charset
-        $RequestUri = urldecode($RequestUri);
-        $Url = substr($RequestUri, strlen(Path::GetRelativeFileBase()));
-        if (strlen($Url) != 0) {
+        $requestUri = urldecode($requestUri);
+        $url = substr($requestUri, strlen(Path::getRelativeFileBase()));
+        if (strlen($url) != 0) {
             // add a / at the start if not already has
-            if ($Url[0] != '/')
-                $Url = '/' . $Url;
+            if ($url[0] != '/')
+                $url = '/' . $url;
 
             // add a / at the end if not already has
-            if ($Url[strlen($Url) - 1] != '/')
-                $Url = $Url . '/';
+            if ($url[strlen($url) - 1] != '/')
+                $url = $url . '/';
         }
         else {
-            $Url = '/';
+            $url = '/';
         }
 
-        $this->Url = $Url;
-        return $this->Url;
+        $this->url = $url;
+        return $this->url;
     }
 
     /**
      * Executes the under construction file.
-     * @param type $File 
+     * @param type $file 
      */
-    protected function ExecuteUnderConstruction($File) {
-        require($File);
+    protected function executeUnderConstruction($file) {
+        require($file);
     }
 
 }

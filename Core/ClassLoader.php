@@ -13,19 +13,19 @@ class ClassLoader {
      * List of namespace associations to paths
      * @var array 
      */
-    protected $NamespaceAssociationList;
+    protected $namespaceAssociationList;
 
     /**
      * 
      */
     public function __construct() {
-        $this->NamespaceAssociationList = array();
+        $this->namespaceAssociationList = array();
     }
 
     /**
      * Initialize this class loader
      */
-    public function Init() {
+    public function init() {
         spl_autoload_register(array($this, 'LoadClass'));
     }
 
@@ -33,28 +33,28 @@ class ClassLoader {
 
     /**
      * Tries to load a class.
-     * @param String $Class  
+     * @param String $class  
      */
-    protected function LoadClass($Class) {
-        if ($Class[0] !== '\\') {
-            $Class = '\\' . $Class;
+    protected function loadClass($class) {
+        if ($class[0] !== '\\') {
+            $class = '\\' . $class;
         }
 
-        $Name = $Class;
-        foreach ($this->GetNamespaceAssociationList() as $Namespace => $Path) {
-            if (strpos($Name, $Namespace . '\\') === 0) { // starts with
-                $Name = str_replace($Namespace, $Path, $Name);
+        $name = $class;
+        foreach ($this->getNamespaceAssociationList() as $namespace => $path) {
+            if (strpos($name, $namespace . '\\') === 0) { // starts with
+                $name = str_replace($namespace, $path, $name);
                 break;
             }
         }
-	$Path = str_replace('\\', '/', $Name);
-        $Path = str_replace('//', '/', $Path);
-        $Path = Path::RealPath($Path . '.php');
-        if (file_exists($Path)) {
+	$path = str_replace('\\', '/', $name);
+        $path = str_replace('//', '/', $path);
+        $path = Path::realPath($path . '.php');
+        if (file_exists($path)) {
 
-            require $Path;
+            require $path;
             if (class_exists('\\Pvik\\Core\\Log')) {
-                Log::WriteLine('[Include] ' . $Path);
+                Log::writeLine('[Include] ' . $path);
             }
             return true;
         }
@@ -65,18 +65,18 @@ class ClassLoader {
      * Returns the current list of namespace associations to paths
      * @return array
      */
-    public function GetNamespaceAssociationList() {
-        return $this->NamespaceAssociationList;
+    public function getNamespaceAssociationList() {
+        return $this->namespaceAssociationList;
     }
 
     /**
      * Set a path association for a namespace
-     * @param String $Namespace
-     * @param String $Path
+     * @param String $namespace
+     * @param String $path
      * @return \Pvik\Core\ClassLoader
      */
-    public function SetNamespaceAssociation($Namespace, $Path) {
-        $this->NamespaceAssociationList[$Namespace] = $Path;
+    public function setNamespaceAssociation($namespace, $path) {
+        $this->namespaceAssociationList[$namespace] = $path;
         return $this;
     }
 

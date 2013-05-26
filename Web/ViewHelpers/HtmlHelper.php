@@ -12,25 +12,25 @@ class HtmlHelper {
     /**
      * Creates a html link.
      * <a href="/blog/overview/">Title</a>
-     * @param string $Path Resolves the ~/ to a relative path
-     * @param string $Title
-     * @param array $HtmlAttributes 
+     * @param string $path Resolves the ~/ to a relative path
+     * @param string $title
+     * @param array $htmlAttributes 
      */
-    public function Link($Path, $Title, $HtmlAttributes = array()) {
-        $RelativePath = Path::RelativePath($Path);
-        $LinkHtml = '<a';
-        $HtmlAttributes['href'] = $RelativePath;
-        $LinkHtml .= $this->GenerateAttributes($HtmlAttributes);
-        $LinkHtml .= '>' . $Title . '</a>';
-        echo $LinkHtml;
+    public function link($path, $title, $htmlAttributes = array()) {
+        $relativePath = Path::relativePath($path);
+        $linkHtml = '<a';
+        $htmlAttributes['href'] = $relativePath;
+        $linkHtml .= $this->generateAttributes($htmlAttributes);
+        $linkHtml .= '>' . $title . '</a>';
+        echo $linkHtml;
     }
 
     /**
      * Same as echo.
-     * @param string $Html 
+     * @param string $html 
      */
-    public function Out($Html) {
-        echo $Html;
+    public function out($html) {
+        echo $html;
     }
 
     /**
@@ -38,39 +38,39 @@ class HtmlHelper {
      * array ("ID" => "myid", "class" = "myclass")
      * to
      * ID="myID" class="myclass"
-     * @param array $HtmlAttributes
+     * @param array $htmlAttributes
      * @return string 
      */
-    public function GenerateAttributes(array $HtmlAttributes) {
-        $Html = '';
-        foreach ($HtmlAttributes as $Name => $Value) {
-            $Html .= ' ' . $Name . '="' . $Value . '"';
+    public function generateAttributes(array $htmlAttributes) {
+        $html = '';
+        foreach ($htmlAttributes as $name => $value) {
+            $html .= ' ' . $name . '="' . $value . '"';
         }
-        return $Html;
+        return $html;
     }
 
     /**
      * Creates a link to a stylesheet file.
      * Output example:
      * <link rel="stylesheet" type="text/css" href="/css/stylesheet.css" />
-     * @param string $Path Resolves the ~/ to a relative path
+     * @param string $path Resolves the ~/ to a relative path
      */
-    public function StyleSheetLink($Path) {
-        $RelativePath = Path::RelativePath($Path);
-        $Html = '<link rel="stylesheet" type="text/css" href="' . $RelativePath . '" />';
-        echo $Html;
+    public function styleSheetLink($path) {
+        $relativePath = Path::relativePath($path);
+        $html = '<link rel="stylesheet" type="text/css" href="' . $relativePath . '" />';
+        echo $html;
     }
 
     /**
      * Creates a link to a javascript file.
      * Output example:
      * <script type="text/javascript" src="/js/javascript.js"></script>
-     * @param string $Path Resolves the ~/ to a relative path
+     * @param string $path Resolves the ~/ to a relative path
      */
-    public function JavaScriptLink($Path) {
-        $RelativePath = Path::RelativePath($Path);
-        $Html = '<script type="text/javascript" src="' . $RelativePath . '"></script>';
-        echo $Html;
+    public function javaScriptLink($path) {
+        $relativePath = Path::relativePath($path);
+        $html = '<script type="text/javascript" src="' . $relativePath . '"></script>';
+        echo $html;
     }
 
     /**
@@ -78,27 +78,27 @@ class HtmlHelper {
      * Output example:
      * <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
      * <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-     * @param type $Path 
+     * @param type $path 
      */
-    public function FaviconLink($Path) {
-        $RelativePath = Path::RelativePath($Path);
-        $Html = '<link rel="shortcut icon" href="' . $RelativePath . '" type="image/x-icon" />';
-        $Html .= '<link rel="icon" href="' . $RelativePath . '" type="image/x-icon" />';
-        echo $Html;
+    public function faviconLink($path) {
+        $relativePath = Path::relativePath($path);
+        $html = '<link rel="shortcut icon" href="' . $relativePath . '" type="image/x-icon" />';
+        $html .= '<link rel="icon" href="' . $relativePath . '" type="image/x-icon" />';
+        echo $html;
     }
 
     /**
      * Creates a errofield if a error exists in the validation state for the field.
      * Output example:
      * <span class="errorfield">Field can not be empty.</span>
-     * @param ValidationState $ValidationState
-     * @param string $Field
-     * @param string $Class Html class
+     * @param ValidationState $validationState
+     * @param string $field
+     * @param string $class Html class
      */
-    public function Errorfield(\Pvik\Utils\ValidationState $ValidationState, $Field, $Class = 'errorfield') {
-        if ($ValidationState != null) {
-            if ($ValidationState->GetError($Field) != null) {
-                echo '<span class="' . $Class . '">' . $ValidationState->GetError($Field) . '</span>';
+    public function errorfield(\Pvik\Utils\ValidationState $validationState, $field, $class = 'errorfield') {
+        if ($validationState != null) {
+            if ($validationState->getError($field) != null) {
+                echo '<span class="' . $class . '">' . $validationState->getError($field) . '</span>';
             }
         }
     }

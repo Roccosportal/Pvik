@@ -14,56 +14,56 @@ class Log {
      * Contains the instance of an Log obejcet.
      * @var Log 
      */
-    protected static $Instance = null;
+    protected static $instance = null;
 
     /**
      * Contains an array of the log lines.
      * @var array
      */
-    protected $LogTrace;
+    protected $logTrace;
 
     /**
      * Contains the handle of the current log file.
      * @var type 
      */
-    protected $LogFileHandle = null;
+    protected $logFileHandle = null;
 
     /**
      * 
      */
     public function __construct() {
-        $this->LogTrace = array();
+        $this->logTrace = array();
         $date = new \DateTime();
-        if (Config::$Config['Log']['UseOneFile'] == false) {
-            $GeneratedFilePath = Path::RealPath('~/logs') . '/log-' . $date->getTimestamp() . '.txt';
+        if (Config::$config['Log']['UseOneFile'] == false) {
+            $generatedFilePath = Path::realPath('~/logs') . '/log-' . $date->getTimestamp() . '.txt';
         } else {
-            $GeneratedFilePath = Path::RealPath('~/logs/log-file.txt');
+            $generatedFilePath = Path::realPath('~/logs/log-file.txt');
         }
 
-        $this->LogFileHandle = fopen($GeneratedFilePath, 'w');
+        $this->logFileHandle = fopen($generatedFilePath, 'w');
     }
 
     /**
      * Writes a line in the log file and saves it into the log trace.
-     * @param string $Message 
+     * @param string $message 
      */
-    public function Write($Message) {
-        If ($this->LogFileHandle != null) {
-            fwrite($this->LogFileHandle, $Message);
+    public function write($message) {
+        If ($this->logFileHandle != null) {
+            fwrite($this->logFileHandle, $message);
         }
-        array_push($this->LogTrace, $Message);
+        array_push($this->logTrace, $message);
     }
 
     /**
      * Writes a line in the log file and saves it into the log trace if logging is turned on.
-     * @param string $Message 
+     * @param string $message 
      */
-    public static function WriteLine($Message) {
-        if (Config::$Config['Log']['On'] == true) {
-            If (self::$Instance == null) {
-                self::$Instance = new Log();
+    public static function writeLine($message) {
+        if (Config::$config['Log']['On'] == true) {
+            If (self::$instance == null) {
+                self::$instance = new Log();
             }
-            self::$Instance->Write($Message . "\n");
+            self::$instance->write($message . "\n");
         }
     }
 
@@ -72,12 +72,12 @@ class Log {
      * Can be used for a exception page.
      * @return string 
      */
-    public static function GetTrace() {
-        $TraceString = "";
-        If (self::$Instance != null) {
-            $TraceString = self::$Instance->GetTraceString();
+    public static function getTrace() {
+        $traceString = "";
+        If (self::$instance != null) {
+            $traceString = self::$instance->getTraceString();
         }
-        return $TraceString;
+        return $traceString;
     }
 
     /**
@@ -85,27 +85,27 @@ class Log {
      * Can be used for a exception page.
      * @return string 
      */
-    public function GetTraceString() {
-        $TraceString = "";
-        $Max = count($this->LogTrace);
-        if ($Max > 0) {
-            for ($i = 0; $i < $Max; $i++) {
+    public function getTraceString() {
+        $traceString = "";
+        $max = count($this->logTrace);
+        if ($max > 0) {
+            for ($i = 0; $i < $max; $i++) {
                 if (($i + 1) < 10) {
-                    $TraceString .= '#0' . ($i + 1) . ' ' . $this->LogTrace[$i];
+                    $traceString .= '#0' . ($i + 1) . ' ' . $this->logTrace[$i];
                 } else {
-                    $TraceString .= '#' . ($i + 1) . ' ' . $this->LogTrace[$i];
+                    $traceString .= '#' . ($i + 1) . ' ' . $this->logTrace[$i];
                 }
             }
         }
-        return $TraceString;
+        return $traceString;
     }
 
     /**
      * Destroys the log file handle when finished.
      */
     public function __destruct() {
-        if ($this->LogFileHandle != null) {
-            fclose($this->LogFileHandle);
+        if ($this->logFileHandle != null) {
+            fclose($this->logFileHandle);
         }
     }
 

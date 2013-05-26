@@ -13,26 +13,26 @@ class ControllerManager {
 
     /**
      * Execute a action from a controller.
-     * @param string $ControllerName
-     * @param string $ActionName
-     * @param KeyValueArray $Parameters 
+     * @param string $controllerName
+     * @param string $actionName
+     * @param KeyValueArray $parameters 
      */
-    public static function ExecuteController($ControllerName, $ActionName, Request $Request) {
-        $ControllerClassName = $ControllerName;
-        if ($ControllerClassName[0] !== '\\') {
-            $ControllerClassName = Config::$Config['DefaultNamespace'] . Config::$Config['DefaultNamespaceControllers'] . '\\' . $ControllerClassName;
+    public static function executeController($controllerName, $actionName, Request $request) {
+        $controllerClassName = $controllerName;
+        if ($controllerClassName[0] !== '\\') {
+            $controllerClassName = Config::$config['DefaultNamespace'] . Config::$config['DefaultNamespaceControllers'] . '\\' . $controllerClassName;
         }
 
-        $ControllerInstance = new $ControllerClassName($Request, $ControllerName);
-        /* @var $ControllerInstance \Pvik\Web\Controller */
-        $ActionFunctionName = $ActionName . 'Action';
-        if (method_exists($ControllerInstance, $ActionFunctionName)) {
-            Log::WriteLine('Executing action: ' . $ActionFunctionName);
-            $ControllerInstance->SetCurrentActionName($ActionName);
+        $controllerInstance = new $controllerClassName($request, $controllerName);
+        /* @var $controllerInstance \Pvik\Web\Controller */
+        $actionFunctionName = $actionName . 'Action';
+        if (method_exists($controllerInstance, $actionFunctionName)) {
+            Log::writeLine('Executing action: ' . $actionFunctionName);
+            $controllerInstance->setCurrentActionName($actionName);
             // execute action    
-            $ControllerInstance->$ActionFunctionName();
+            $controllerInstance->$actionFunctionName();
         } else {
-            throw new \Exception('Action doesn\'t exists: ' . $ControllerClassName . '->' . $ActionFunctionName);
+            throw new \Exception('Action doesn\'t exists: ' . $controllerClassName . '->' . $actionFunctionName);
         }
     }
 

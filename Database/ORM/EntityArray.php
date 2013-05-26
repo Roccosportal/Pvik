@@ -555,6 +555,16 @@ class EntityArray extends \ArrayObject {
                     // set for the next field in the loop
                     $modelTable = $foreignModelTable;
                     break;
+                case FieldDefinition\Type::PRIMARY_KEY:
+                case FieldDefinition\Type::FOREIGN_KEY:    
+                case FieldDefinition\Type::NORMAL:
+                    $values = array();
+                    foreach ($list as $object) {
+                        if ($object != null) {
+                            $values[] = $object->$fieldName;
+                        }
+                    }
+                    return new EntityArray($values);
                 default:
                     return null;
                     break;

@@ -1,6 +1,6 @@
 Pvik
 
-Version: 6.0.0
+Version: 6.1.0
 License: license.txt
 Date: 25-05-2013 (dd-mm-yyyy)
 

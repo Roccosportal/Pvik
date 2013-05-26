@@ -75,7 +75,8 @@ abstract class Manager {
     public function convertParameters(array $parameters) {
         $convertedParameters = array();
         foreach ($parameters as $parameter) {
-            array_push($convertedParameters, $this->escapeString(Type::convertValue($parameter)));
+            
+            array_push($convertedParameters, Type::getInstance()->convertValue($parameter));
         }
         return $convertedParameters;
     }

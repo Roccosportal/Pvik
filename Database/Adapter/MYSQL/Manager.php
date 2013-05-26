@@ -20,7 +20,7 @@ class Manager extends \Pvik\Database\SQL\Manager {
      * Connect to the database
      */
     protected function __construct() {
-        $mySQL = \Pvik\Core\Config::$config['MySQL'];
+        $mySQL = \Pvik\Core\Config::$config['Database'];
         $this->connection = mysql_connect($mySQL['Server'], $mySQL['Username'], $mySQL['Password']);
         if (!$this->connection) {
             throw new \Exception('Database error: ' . mysql_error());

@@ -169,7 +169,7 @@ class ModelTable {
     public function getFieldDefinitionHelper() {
         // just use one instance
         if ($this->fieldDefinitionHelper == null) {
-            $this->fieldDefinitionHelper = new FieldDefinitionHelper($this->fieldDefinition, $this);
+            $this->fieldDefinitionHelper = new FieldDefinition\Helper($this->fieldDefinition, $this);
         }
         return $this->fieldDefinitionHelper;
     }

@@ -63,12 +63,12 @@ class Entity {
         $helper = $modelTable->getFieldDefinitionHelper();
         if ($helper->fieldExists($fieldName)) {
             switch ($helper->getFieldType($fieldName)) {
-                case 'PrimaryKey':
-                case 'Normal':
-                case 'ForeignKey':
+                case FieldDefinition\Type::PRIMARY_KEY:
+                case FieldDefinition\Type::NORMAL:
+                case FieldDefinition\Type::FOREIGN_KEY:
                     return $this->getFieldData($fieldName);
                     break;
-                case 'ForeignObject':
+                case FieldDefinition\Type::FOREIGN_OBJECT:
                     // search for the foreign key reference
                     $foreignKeyFieldName = $helper->getForeignKeyFieldName($fieldName);
                     $foreignKey = $this->getFieldData($foreignKeyFieldName);
@@ -79,7 +79,7 @@ class Entity {
                     $foreignModelTable = $helper->getModelTable($foreignKeyFieldName);
                     return $foreignModelTable->loadByPrimaryKey($foreignKey);
                     break;
-                case 'ManyForeignObjects':
+                case FieldDefinition\Type::MANY_FOREIGN_OBJECTS:
                     $foreignKeys = $this->getFieldData($fieldName);
 
                     $modelTable = $helper->getModelTable($fieldName);
@@ -118,14 +118,14 @@ class Entity {
         $helper = $modelTable->getFieldDefinitionHelper();
         if ($helper->fieldExists($fieldName)) {
             switch ($helper->getFieldType($fieldName)) {
-                case 'PrimaryKey':
+                case FieldDefinition\Type::PRIMARY_KEY:
                     throw new \Exception('The primary key is only readable: ' . $fieldName);
                     break;
-                case 'Normal':
+                case FieldDefinition\Type::NORMAL:
                     //$this->data[$key] = $value;
                     $this->setFieldData($fieldName, $value);
                     break;
-                case 'ForeignKey':
+                case FieldDefinition\Type::FOREIGN_KEY:
 
                     $primaryKey = $this->getPrimaryKey();
                     if ($primaryKey != null) {
@@ -137,10 +137,10 @@ class Entity {
                     }
 
                     break;
-                case 'ForeignObject':
+                case FieldDefinition\Type::FOREIGN_OBJECT:
                     throw new \Exception('The object is only readable: ' . $fieldName);
                     break;
-                case 'ManyForeignObjects':
+                case FieldDefinition\Type::MANY_FOREIGN_OBJECTS:
                     throw new \Exception('The list is only readable: ' . $fieldName);
                     break;
             }
@@ -182,11 +182,11 @@ class Entity {
             $helper = $this->getModelTable()->getFieldDefinitionHelper();
             foreach ($helper->getFieldList() as $fieldName) {
                 switch ($helper->getFieldType($fieldName)) {
-                    case 'Normal':
-                    case 'ForeignKey':
+                    case FieldDefinition\Type::NORMAL:
+                    case FieldDefinition\Type::FOREIGN_KEY:
                         $insertBuilder->set($fieldName, $this->getFieldData($fieldName));
                         break;
-                    case 'PrimaryKey':
+                    case FieldDefinition\Type::PRIMARY_KEY:
                         // only insert a value if it is a guid otherwise ignore
                         // the primarykey will be set on the database
                         if ($helper->isGuid($fieldName)) {
@@ -218,8 +218,8 @@ class Entity {
             $helper = $this->getModelTable()->getFieldDefinitionHelper();
             foreach ($helper->getFieldList() as $fieldName) {
                 switch ($helper->getFieldType($fieldName)) {
-                    case 'Normal':
-                    case 'ForeignKey':
+                    case FieldDefinition\Type::NORMAL:
+                    case FieldDefinition\Type::FOREIGN_KEY:
                         $updateBuilder->set($fieldName, $this->getFieldData($fieldName));
                         break;
                 }

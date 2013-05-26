@@ -1,11 +1,11 @@
 <?php
 
-namespace Pvik\Database\ORM;
-
+namespace Pvik\Database\ORM\FieldDefinition;
+use \Pvik\Database\ORM\ModelTable;
 /**
  * A helper class for the field definition of model tables
  */
-class FieldDefinitionHelper {
+class Helper {
 
     /**
      * Field definition of an model table.
@@ -52,7 +52,7 @@ class FieldDefinitionHelper {
      * @param array $fieldDefinition
      * @param ModelTable $originModelTable 
      */
-    public function __construct($fieldDefinition, ModelTable $originModelTable) {
+    public function __construct($fieldDefinition, \Pvik\Database\ORM\ModelTable $originModelTable) {
         $this->fieldDefinition = $fieldDefinition;
         $this->originModelTable = $originModelTable;
     }
@@ -211,7 +211,7 @@ class FieldDefinitionHelper {
      */
     public function isTypeForeignKey($fieldName) {
         $fieldType = $this->getFieldType($fieldName);
-        if ($fieldType == 'ForeignKey') {
+        if ($fieldType == Type::FOREIGN_KEY) {
             return true;
         }
         return false;
@@ -224,7 +224,7 @@ class FieldDefinitionHelper {
      */
     public function isTypePrimaryKey($fieldName) {
         $fieldType = $this->getFieldType($fieldName);
-        if ($fieldType == 'PrimaryKey') {
+        if ($fieldType == Type::PRIMARY_KEY) {
             return true;
         }
         return false;
@@ -237,7 +237,7 @@ class FieldDefinitionHelper {
      */
     public function isTypeForeignObject($fieldName) {
         $fieldType = $this->getFieldType($fieldName);
-        if ($fieldType == 'ForeignObject') {
+        if ($fieldType == Type::FOREIGN_OBJECT) {
             return true;
         }
         return false;
@@ -250,7 +250,7 @@ class FieldDefinitionHelper {
      */
     public function isTypeManyForeignObjects($fieldName) {
         $fieldType = $this->getFieldType($fieldName);
-        if ($fieldType == 'ManyForeignObjects') {
+        if ($fieldType == Type::MANY_FOREIGN_OBJECTS) {
             return true;
         }
         return false;

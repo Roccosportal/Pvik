@@ -163,12 +163,12 @@ class Select {
         $helper = $this->modelTable->getFieldDefinitionHelper();
         foreach ($helper->getFieldDefinition() as $fieldName => $definition) {
               switch ($helper->getFieldType($fieldName)) {
-                case 'Normal':
-                case 'PrimaryKey':
-                case 'ForeignKey':
+                case \Pvik\Database\ORM\FieldDefinition\Type::NORMAL:
+                case \Pvik\Database\ORM\FieldDefinition\Type::PRIMARY_KEY:
+                case \Pvik\Database\ORM\FieldDefinition\Type::FOREIGN_KEY:
                     $this->addField($this->modelTable->getTableName() . '.'. $fieldName);
                     break;
-                case 'ManyForeignObjects':
+                case \Pvik\Database\ORM\FieldDefinition\Type::MANY_FOREIGN_OBJECTS:
                      // get definition for the foreign table
                     $foreignModelTable = $helper->getModelTable($fieldName);
                     // simple creation for a unique alias

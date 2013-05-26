@@ -528,7 +528,7 @@ class EntityArray extends \ArrayObject {
                 throw new \Exception('Field ' . $fieldName . ' must be in field definition');
             }
             switch ($helper->getFieldType($fieldName)) {
-                case 'ForeignObject':
+                case FieldDefinition\Type::FOREIGN_OBJECT:
                     $foreignKeyFieldName = $helper->getForeignKeyFieldName($fieldName);
                     $foreignModelTable = $helper->getModelTable($foreignKeyFieldName);
                     $keys = array();
@@ -543,7 +543,7 @@ class EntityArray extends \ArrayObject {
                     // set for the next field in the loop
                     $modelTable = $foreignModelTable;
                     break;
-                case 'ManyForeignObjects':
+                case FieldDefinition\Type::MANY_FOREIGN_OBJECTS:
                     $foreignModelTable = $helper->getModelTable($fieldName);
                     $keys = array();
                     foreach ($list as $object) {

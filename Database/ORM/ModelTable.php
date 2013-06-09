@@ -181,7 +181,7 @@ class ModelTable {
      */
     public function selectAll() {
         // creating a new query without any conditions
-        $queryBuilder = $this->getEmptyQueryBuilder();
+        $queryBuilder = $this->getEmptySelectBuilder();
         return $queryBuilder->select();
     }
     /**

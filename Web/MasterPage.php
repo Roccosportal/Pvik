@@ -37,7 +37,7 @@ class MasterPage {
         // set the view that uses the masterpage
         $this->view = $view;
         $this->viewData = $view->getViewData();
-        $this->Helper = new \Pvik\Web\ViewHelpers\HtmlHelper();
+        $this->helper = new \Pvik\Web\ViewHelpers\HtmlHelper();
 
         $this->executePartialCode();
     }

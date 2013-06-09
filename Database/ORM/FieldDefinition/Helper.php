@@ -188,7 +188,7 @@ class Helper {
      * @return string 
      */
     public function getFieldValue($fieldName, $valueName) {
-        if ($this->HasFieldValue($fieldName, $valueName)) {
+        if ($this->hasFieldValue($fieldName, $valueName)) {
             $field = $this->getField($fieldName);
             return $field[$valueName];
         }

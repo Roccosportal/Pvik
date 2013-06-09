@@ -65,7 +65,7 @@ class View {
         $this->controller = $controller;
 
         $this->viewData = $this->controller->getViewData();
-        $this->Helper = new \Pvik\Web\ViewHelpers\HtmlHelper();
+        $this->helper = new \Pvik\Web\ViewHelpers\HtmlHelper();
         $this->executePartialCode($this->viewPath);
 
         if ($this->masterPagePath != null) {

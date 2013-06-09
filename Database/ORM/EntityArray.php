@@ -504,7 +504,7 @@ class EntityArray extends \ArrayObject {
      * @return type 
      */
     public function hasNotValue($fieldName, $value) {
-        return !$this->HasValue($fieldName, $value);
+        return !$this->hasValue($fieldName, $value);
     }
 
     /**

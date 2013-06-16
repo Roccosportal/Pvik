@@ -64,7 +64,7 @@ class Insert extends Generic{
              else {
                  $first = false;
              }
-             $statement .=  $quoteSign .'%s' . $quoteSign ;
+             $statement .= '%s' ;
              $this->parameters[] = $field['value'];
         }
         $statement .= ')';

@@ -51,7 +51,7 @@ class Update extends Generic{
              else {
                  $first = false;
              }
-             $statement .= $field['field'] . '='. $quoteSign .'%s' . $quoteSign ;
+             $statement .= $field['field'] . '=%s' ;
              $this->parameters[] = $field['value'];
         }
         return $statement;

@@ -38,7 +38,7 @@ class Type {
            return $this->arrayValue($value);
         }
         elseif ($value !== null) {
-            return Manager::getInstance()->escapeString($value);
+            return $this->quoteSign . Manager::getInstance()->escapeString($value) . $this->quoteSign;
         } else {
             return $this->null();
         }

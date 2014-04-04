@@ -60,7 +60,7 @@ class Manager extends \Pvik\Database\SQL\Manager {
      * @return string
      */
     public function EscapeString($String) {
-        return mysql_escape_string($String);
+        return mysql_real_escape_string($String);
     }
 
     /**
